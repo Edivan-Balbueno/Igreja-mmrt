@@ -1,0 +1,76 @@
+{% extends '_layout1.html' %} {# Certifique-se que este é o seu template base correto #}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+        <hr>
+
+        {# Seção para a Transmissão Ao Vivo #}
+        <h3 class="mb-3">{{ live_status_message }}</h3>
+        {% if live_video_id %}
+            <p>Acompanhe nossa transmissão ao vivo aqui:</p>
+            <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;">
+                <iframe
+                    src="https://www.youtube.com/embed/{{ live_video_id }}?autoplay=1&mute=0&rel=0" {# CORRIGIDO: Usando https://www.youtube.com/embed/ #}
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                ></iframe>
+            </div>
+            {% if live_video_title %}
+                <p class="mt-2 text-center"><strong>{{ live_video_title }}</strong></p>
+            {% endif %}
+            <p class="mt-3">Se a transmissão não iniciar automaticamente, por favor, clique no botão de play.</p>
+
+            {# Opcional: Link para o canal do YouTube se estiver ao vivo #}
+            <p><a href="https://www.youtube.com/watch?v={{ live_video_id }}" target="_blank" class="btn btn-primary mt-2">Ver no YouTube</a></p>
+
+        {% else %}
+            <p>Não há transmissão ao vivo no momento. Abaixo você pode conferir alguns dos nossos vídeos gravados.</p>
+            {# Opcional: Link para o seu canal do YouTube quando não há live #}
+            <p><a href="https://www.youtube.com/channel/UC2WOj4C0uHhKdlRW65Or69A" target="_blank" class="btn btn-secondary">Visite nosso Canal no YouTube</a></p>
+        {% endif %}
+
+        <hr>
+
+        {# Seção para Vídeos Gravados Dinâmicos #}
+        <h3 class="mt-4">{{ recorded_videos_message }}</h3>
+        {% if youtube_recorded_videos %}
+            <div class="row">
+                {% for video in youtube_recorded_videos %} {# Agora 'video' é um dicionário #}
+                    <div class="col-md-4 mb-4"> {# Exibe 3 vídeos por linha em telas médias #}
+                        <div class="card h-100">
+                            {# AQUI ESTÁ A MUDANÇA: Adicionando o iframe para o vídeo gravado #}
+                            <div class="video-thumbnail-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000;">
+                                <iframe
+                                    src="https://www.youtube.com/embed/{{ video.id }}" {# CORRIGIDO: Usando https://www.youtube.com/embed/ #}
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                                ></iframe>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ video.title }}</h5>
+                                <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" class="btn btn-sm btn-primary">Ver no YouTube</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif youtube_api_key and not recorded_videos_message == "Ocorreu um erro ao carregar os vídeos gravados." %}
+            {# Apenas mostra esta mensagem se não houver vídeos e não for um erro de API #}
+            <p>Nenhum vídeo gravado disponível no momento.</p>
+        {% endif %}
+
+        {# Outros conteúdos da página de vídeos #}
+    </div>
+{% endblock %}

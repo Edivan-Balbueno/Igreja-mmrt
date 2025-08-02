@@ -1,0 +1,66 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }} - Perfil
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Página de Perfil</h2>
+        <p>Bem-vindo, <strong>{{ user.username }}</strong>!</p>
+        <hr>
+
+        <h3>Suas Informações</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Nome de Usuário: <strong>{{ user.username }}</strong></li>
+            {% if user.first_name or user.last_name %}
+                <li class="list-group-item">Nome Completo: <strong>{{ user.first_name }} {{ user.last_name }}</strong></li>
+            {% endif %}
+            {% if user.email %}
+                <li class="list-group-item">Email: <strong>{{ user.email }}</strong></li>
+            {% endif %}
+            {# Se o seu CustomUser tiver campos adicionais como 'data_nascimento' ou 'cpf', você pode exibi-los aqui: #}
+            {% if user.data_nascimento %}
+                <li class="list-group-item">Data de Nascimento: <strong>{{ user.data_nascimento|date:"d/m/Y" }}</strong></li>
+            {% endif %}
+            {% if user.cpf %}
+                <li class="list-group-item">CPF: <strong>{{ user.cpf }}</strong></li>
+            {% endif %}
+        </ul>
+
+        <hr>
+
+        {# Bloco para links de controle do blog - Visível SOMENTE para Blog Admins #}
+        {# A condição verifica se o usuário está logado E se a variável 'can_admin_blog' é True #}
+        {% if user.is_authenticated and can_admin_blog %} {# <-- Alteração aqui #}
+            <h3 class="mt-4">Controle do Blog e Comentários</h3>
+            <div class="list-group">
+                <a href="{% url 'blog_admin_dashboard' %}" class="list-group-item list-group-item-action">
+                    Aceder ao Painel de Administração do Blog
+                </a>
+                <!--
+                <a href="{ 3% url 'create_blog_admin' %}" class="list-group-item list-group-item-action">
+                    Criar Novo Administrador do Blog
+                -->
+                <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
+                    Gerenciar Comentários (se houver uma view específica)
+                </a>
+                {# Link para gerir imagens do carrossel #}
+                <a href="{% url 'carousel_image_list' %}" class="list-group-item list-group-item-action">
+                    Gerir Imagens do Carrossel
+                </a>
+            </div>
+            <p class="mt-2 text-muted">Você possui permissões de administrador do blog.</p>
+        {% else %}
+            <p class="mt-4">Você não possui permissões de administrador do blog para aceder a controlos adicionais.</p>
+        {% endif %}
+
+        <hr>
+
+        {# Outras informações ou ações para todos os utilizadores autenticados #}
+        <h3 class="mt-4">Outras Ações</h3>
+        <p><a href="{% url 'password_change' %}" class="btn btn-secondary me-2">Alterar Palavra-passe</a></p>
+        <p><a href="{% url 'logout' %}" class="btn btn-danger">Sair da Conta</a></p>
+    </div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{# blog/templates/blog_admin_dashboard.html #}
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+        <hr>
+
+        <div class="row">
+            <div>
+                <div class="list-group">
+                    <a href="{% url 'blog_admin_dashboard' %}" class="list-group-item list-group-item-action active">
+                        Painel de Administração do Blog
+                    </a>
+                </div>
+
+                        <hr>
+
+                    <a href="{% url 'carousel_image_list' %}" class="btn btn-success mb-3">
+                        Gerir Imagens do Carrossel
+                    </a>
+                        <hr>
+            
+                <h3>Estatísticas Rápidas</h3>
+                <p>Total de Posts: {{ all_posts.count }}</p>
+                <p>Comentários Pendentes de Aprovação: <span class="badge bg-warning text-dark">{{ pending_comments }}</span></p>
+
+                <h4 class="mt-4">Gerenciar Posts</h4>
+                <a href="{% url 'create_post' %}" class="btn btn-success mb-3">Criar Novo Post</a>
+                <div class="list-group">
+                    {% for post in all_posts %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            {# Título do Post com data e text-truncate para evitar quebra de layout #}
+                            <span class="text-truncate me-2">{{ post.titulo_blog }} ({{ post.pub_date|date:"d/m/Y" }})</span>
+                            
+                            {# Grupo de botões para ações do post #}
+                            <div class="btn-group" role="group" aria-label="Ações do Post">
+                                <a href="{% url 'edit_post' post.id %}" class="btn btn-info btn-sm">Editar</a>
+                                <form method="post" action="{% url 'delete_post' post.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" 
+                                            onclick="return confirm('Tem certeza que deseja excluir este post?');">
+                                        Excluir
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>Nenhum post publicado ainda.</p>
+                    {% endfor %}
+                </div>
+
+                <h4 class="mt-4">Gerenciar Comentários</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mt-3">
+                        <thead>
+                            <tr>
+                                <th>Post</th>
+                                <th>Nome</th>
+                                <th>Comentário</th>
+                                <th>Data</th>
+                                <th>Aprovado?</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in all_comments %}
+                                <tr>
+                                    <td>{{ comment.post.title|truncatechars:30 }}</td>
+                                    <td>{{ comment.name }}</td>
+                                    <td>{{ comment.comment|truncatechars:100 }}</td>
+                                    <td>{{ comment.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if comment.approved_comment %}
+                                            <span class="badge bg-success">Sim</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pendente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post" action="{% url 'manage_comments' %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="comment_id" value="{{ comment.id }}">
+                                            {% if not comment.approved_comment %}
+                                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm me-2"
+                                                        onclick="return confirm('Tem certeza que deseja aprovar este comentário?');"> {# <-- Adicionado onclick #}
+                                                    Aprovar
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" name="action" value="disapprove" class="btn btn-warning text-dark btn-sm me-2"
+                                                        onclick="return confirm('Tem certeza que deseja desaprovar este comentário?');">
+                                                    Desaprovar
+                                                </button>
+                                            {% endif %}
+                                            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Tem certeza que deseja eliminar este comentário?');">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Nenhum comentário encontrado.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

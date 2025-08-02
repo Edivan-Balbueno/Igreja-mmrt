@@ -1,0 +1,93 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+        <hr>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button> {# Alterado para 'Fechar' #}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-5">
+                <h3>Adicionar Nova Imagem</h3>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success">Guardar Imagem</button> {# Alterado para 'Guardar Imagem' #}
+                </form>
+            </div>
+
+            <div class="col-md-7">
+                <h3>Imagens Existentes</h3>
+                {% if images %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Imagem</th>
+                                    <th>Título</th>
+                                    <th>Ativa?</th>
+                                    <th>Ordem</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for image in images %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            {% if image.image %}
+                                                <img src="{{ image.image.url }}" alt="{{ image.title }}" style="width: 80px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ image.title|default:"Sem Título" }}</td> {# Alterado para 'Sem Título' #}
+                                        <td>
+                                            {% if image.is_active %}
+                                                <span class="badge bg-success">Sim</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Não</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ image.order }}</td>
+                                        <td>
+                                            <a href="{% url 'carousel_image_edit' image.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                                            <a href="{% url 'carousel_image_delete' image.pk %}" class="btn btn-danger btn-sm">Eliminar</a> {# Alterado para 'Eliminar' #}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>Nenhuma imagem de carrossel registada ainda.</p> {# Alterado para 'registada' #}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

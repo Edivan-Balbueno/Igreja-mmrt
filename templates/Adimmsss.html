@@ -1,0 +1,41 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+
+        {% if messages %}
+            <ul class="messages list-unstyled">
+                {% for message in messages %}
+                <li class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="username" class="form-label">Nome de Usuário:</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email (Opcional):</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Senha:</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Criar Admin</button>
+            <a href="{% url 'blog_admin_dashboard' %}" class="btn btn-secondary">Voltar ao Painel</a>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends '_layout1.html' %}
+{% load static %} {# Garantir que static esteja carregado #}
+
+{% block head_title %}
+    Postagem Mmrt
+{% endblock %}
+
+{% block content %}
+
+  <h1>{{ titulo }}</h1><br>
+   
+  {# Removido: {{ sem_espacos }} - não estava sendo passado no contexto #}
+
+  {# Paginação: Posicionada uma única vez após a iteração dos posts #}
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+      {% if artigo.has_previous %}
+      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
+      {% endif %}
+      {# Você pode adicionar os números das páginas aqui se quiser, exemplo: #}
+      {% comment %}
+      {% for i in artigo.paginator.page_range %}
+          <li class="page-item {% if artigo.number == i %}active{% endif %}">
+              <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+          </li>
+      {% endfor %}
+      {% endcomment %}
+      {% if artigo.has_next %}
+      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {# Loop sobre os posts. Renomeado de 'artigo' para 'post' para clareza na iteração. #}
+  {% for post in artigo %}
+
+    <div class="container">
+      <div class="border border-success">
+        <div class="container">
+          <br>
+          <h4>Autor: {{post.author}}</h4>
+          <p>{{post.pub_date|date:"d/m/y"}}</p>
+          <HR>
+          <h1>{{post.titulo_blog}}</h1>
+          <br>
+          {{post.conteudo_artigo|safe}}
+        </div>
+        <hr>
+
+        <div class="container">
+
+          <h5>Deixe seu comentário:</h5>
+          {# Mensagens do Django (sucesso, erro, etc.) serão exibidas aqui #}
+          {% if messages %}
+              <ul class="messages list-unstyled"> {# Usando list-unstyled para remover bullets padrão #}
+                  {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                          {{ message }}
+                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                  </li>
+                  {% endfor %}
+              </ul>
+          {% endif %}
+
+          {% if user.is_authenticated %}
+            <form id="comment" action="{% url 'addcomment' post.id %}" method="POST"> {# Usando url template tag #}
+              {% csrf_token %}
+              <div class="row">
+                <div class="col-md-12 col-sm-12">
+                  <fieldset>
+                    {# O campo 'name' será preenchido na view com o username se o user estiver logado. #}
+                    {# Adicionado 'readonly' para usuários logados e 'required' para deslogados. #}
+                    <input value="{% if user.is_authenticated %}{{ user.username }}{% else %}{{ form.name.value|default:"" }}{% endif %}" 
+                           name="name" 
+                           type="text" 
+                           id="name" 
+                           {% if user.is_authenticated %}readonly{% else %}required{% endif %}>
+                  </fieldset>
+                </div>
+                <br><br>
+                <div class="col-lg-12">
+                  <fieldset>
+                    <textarea name="comment"  rows="3" cols="52" id="message" placeholder="Type your comment" required=""></textarea>
+                  </fieldset>
+                </div>
+                <div class="col-lg-12">
+                  <fieldset>
+                    <button type="submit" id="form-submit" class="main-button">Submit</button>
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+            <br>
+          {% else %}
+          <span style="font-size: 16px;">É necessário estar logado, <a href="{% url 'login' %}">Acessar</a> / <a href="{% url 'signup' %}">Cadastrar</a></span>
+          <br><br>
+          {% endif %}
+
+          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#balbueno{{post.id}}" aria-controls="offcanvasWithBothOptions">Ver comentários: {{ post.comments.count }}</button>
+
+        </div><br>
+        
+        <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="balbueno{{post.id}}" aria-labelledby="offcanvasWithBothOptionsLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">todos os {{ post.comments.count }} comentários</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            {# Exibe comentários associados a este post. Você pode filtrar por approved_comment=True aqui ou na view #}
+            {% for comment in post.comments.all %}
+            <hr>
+            <div class="container">
+              <strong>{{ comment.name }}</strong>
+              <p>{{ comment.created_at|date:"d/m/y"}}</p>
+              {% if not comment.approved_comment %}
+                  <p>Precisa ser aprovado...</p>
+              {% else %}
+                  <p>{{ comment.comment|linebreaks }}</p>
+              {% endif %}    
+            </div>
+            {% empty %}
+            <hr>
+              <p>Nenhum comentário ainda :(</p>
+            {% endfor %}
+          </div>
+          <br>
+        </div> 
+      </div>
+    </div>
+    <br>
+   
+  {% endfor %}
+
+  {# Repetindo a paginação após os posts, como já estava. #}
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+      {% if artigo.has_previous %}
+      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
+      {% endif %}
+      {% if artigo.has_next %}
+      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+{% endblock %}

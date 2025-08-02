@@ -1,0 +1,40 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+   
+{% endblock %}
+
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+        <hr>
+
+        {% if messages %}
+            <ul class="messages list-unstyled">
+                {% for message in messages %}
+                    <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.media }} {# Renderiza os arquivos JS e CSS necessários para o Summernote #}
+                {{ form.as_p }}  {# Renderiza os campos do formulário como parágrafos #}
+                <button type="submit" class="btn btn-primary">Salvar Post</button>
+                <a href="{% url 'blog_admin_dashboard' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+   
+{% endblock %}

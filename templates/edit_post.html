@@ -1,0 +1,43 @@
+{% extends '_layout1.html' %} {# Certifique-se de que '_layout1.html' é o caminho correto para o seu layout base #}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block css %}
+    {{ block.super }} {# Mantém o CSS do _layout1.html (que por sua vez herda do _base.html) #}
+    
+{% endblock %}
+
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>{{ titulo }}</h2>
+        <hr>
+
+        {% if messages %}
+            <ul class="messages list-unstyled">
+                {% for message in messages %}
+                    <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.media }} {# IMPORTANTE: Renderiza os arquivos JS/CSS necessários para o Summernote e outros widgets #}
+            
+            {# Renderiza o formulário completo. Isso vai incluir o campo 'conteudo_artigo' com o widget Summernote. #}
+            {{ form.as_p }} 
+
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            <a href="{% url 'blog_admin_dashboard' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }} {# Mantém o JavaScript do _layout1.html #}
+    
+{% endblock %}

@@ -21,7 +21,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['balbuen.pythonanywhere.com']
 
-
 # Application definition
 
 INSTALLED_APPS = [

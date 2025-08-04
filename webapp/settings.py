@@ -75,8 +75,11 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Balbuen$default',  # Nome do seu banco de dados
+        'USER': 'Balbuen',         # Seu nome de usuário
+        'PASSWORD': 'brendabrenda',     # Sua senha do PythonAnywhere
+        'HOST': 'Balbuen.mysql.pythonanywhere-services.com', # Hostname
     }
 }
 

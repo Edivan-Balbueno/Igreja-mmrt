@@ -443,3 +443,18 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 DEBUG = False
 
 ALLOWED_HOSTS = ['balbuen.pythonanywhere.com']
+
+
+
+
+mmrt 
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Balbuen$default',  # Nome do seu banco de dados
+        'USER': 'Balbuen',         # Seu nome de usuário
+        'PASSWORD': 'brendabrenda',     # Sua senha do PythonAnywhere
+        'HOST': 'Balbuen.mysql.pythonanywhere-services.com', # Hostname
+    }
+}

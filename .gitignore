@@ -15,6 +15,7 @@ env/
 .idea/
 media/
 static/
+anotacoes
 
 # Environment variables
 .env

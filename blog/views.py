@@ -2,6 +2,7 @@
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required # permission_required adicionado
 from django.core.paginator import Paginator
+from django.db.models import Prefetch
 from blog.models import PostMmrt, Comment, CarouselImage
 from .forms import CommentForm, PostMmrtForm, CarouselImageForm
 from django.contrib import messages # Importar o messages framework
@@ -51,16 +52,23 @@ def addcomment(request, id):
 
 # Define uma view baseada em função para a página inicial.
 def index(request):
-    # Renomeada para 'posts' para maior clareza, pois é uma coleção de PostMmrt
-    posts = PostMmrt.objects.order_by("-id") 
-    posts_paginator = Paginator(posts, 5) # 5 posts por página
-    page_num = request.GET.get('page')
-    page_obj = posts_paginator.get_page(page_num) # Renomeada para 'page_obj' para maior clareza
+    # Prefetch os comentários aprovados para cada postagem
+    # 'comments' é o related_name da relação entre PostMmrt e Comment (assumindo que seja esse)
+    posts = PostMmrt.objects.order_by("-id").prefetch_related(
+        Prefetch(
+            'comments', # O related_name do seu ForeignKey ou ManyToManyField no modelo Comment para PostMmrt
+            queryset=Comment.objects.filter(approved_comment=True),
+            to_attr='approved_comments_list' # Nome do atributo que conterá os comentários aprovados
+        )
+    )
 
-    # O contexto ainda usa 'artigo' para compatibilidade com o template existente
+    posts_paginator = Paginator(posts, 5)
+    page_num = request.GET.get('page')
+    page_obj = posts_paginator.get_page(page_num)
+
     context = {
-        'artigo': page_obj, 
-        'titulo': 'Igreja Mmrt', 
+        'artigo': page_obj,
+        'titulo': 'Igreja Mmrt',
         'Pagina_index': 'Home'
     }
     return render(request, 'index.html', context)

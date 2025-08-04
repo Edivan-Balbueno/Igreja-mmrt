@@ -1,148 +1,127 @@
 {% extends '_layout1.html' %}
-{% load static %} {# Garantir que static esteja carregado #}
+{% load static %}
+{% load blog_filters %} {# Adicione esta linha para carregar seus filtros personalizados #}
 
 {% block head_title %}
-    Postagem Mmrt
+    Postagens do Blog
 {% endblock %}
 
 {% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{{ titulo }}</h2>
+    <hr>
 
-  <h1>{{ titulo }}</h1><br>
-   
-  {# Removido: {{ sem_espacos }} - não estava sendo passado no contexto #}
+    {# Paginação #}
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {% if artigo.has_previous %}
+            <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
+            {% endif %}
+            {% if artigo.has_next %}
+            <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
+            {% endif %}
+        </ul>
+    </nav>
 
-  {# Paginação: Posicionada uma única vez após a iteração dos posts #}
-  <nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-center">
-      {% if artigo.has_previous %}
-      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
-      {% endif %}
-      {# Você pode adicionar os números das páginas aqui se quiser, exemplo: #}
-      {% comment %}
-      {% for i in artigo.paginator.page_range %}
-          <li class="page-item {% if artigo.number == i %}active{% endif %}">
-              <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-          </li>
-      {% endfor %}
-      {% endcomment %}
-      {% if artigo.has_next %}
-      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
-      {% endif %}
-    </ul>
-  </nav>
+    {# Loop sobre os posts, cada um dentro de um 'card' #}
+    <div class="row">
+    {% for post in artigo %}
+        <div class="col-12 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-subtitle mb-2 text-muted">Por: {{ post.author }} <small>em {{ post.pub_date|date:"d/m/y" }}</small></h5>
+                    <hr>
+                    <h3 class="card-title">{{ post.titulo_blog }}</h3>
+                    <br>
+                    
+                    {# Conteúdo do artigo - Responsividade do Vídeo #}
+                    <div class="post-content">
+                       
+                            {{ post.conteudo_artigo|safe }}
+                        
+                    </div>
+                                        
+                    <hr>
 
-  {# Loop sobre os posts. Renomeado de 'artigo' para 'post' para clareza na iteração. #}
-  {% for post in artigo %}
+                    <div class="mt-3">
+                        <h5 class="mb-3">Deixe seu comentário:</h5>
+                        {% if messages %}
+                            <ul class="messages list-unstyled">
+                                {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
 
-    <div class="container">
-      <div class="border border-success">
-        <div class="container">
-          <br>
-          <h4>Autor: {{post.author}}</h4>
-          <p>{{post.pub_date|date:"d/m/y"}}</p>
-          <HR>
-          <h1>{{post.titulo_blog}}</h1>
-          <br>
-          {{post.conteudo_artigo|safe}}
-        </div>
-        <hr>
+                        {% if user.is_authenticated %}
+                            <form id="comment-form-{{post.id}}" action="{% url 'addcomment' post.id %}" method="POST">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="nameInput-{{post.id}}" class="form-label visually-hidden">Seu Nome</label>
+                                    <input value="{% if user.is_authenticated %}{{ user.username }}{% else %}{{ form.name.value|default:"" }}{% endif %}" 
+                                           name="name" 
+                                           type="text" 
+                                           id="nameInput-{{post.id}}" 
+                                           class="form-control"
+                                           {% if user.is_authenticated %}readonly{% else %}required{% endif %}>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="messageTextarea-{{post.id}}" class="form-label visually-hidden">Seu Comentário</label>
+                                    <textarea name="comment" rows="3" class="form-control" id="messageTextarea-{{post.id}}" placeholder="Digite seu comentário" required=""></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Enviar Comentário</button>
+                            </form>
+                        {% else %}
+                        <p class="mt-3">É necessário estar logado para comentar: <a href="{% url 'login' %}">Acessar</a> / <a href="{% url 'signup' %}">Cadastrar</a></p>
+                        {% endif %}
 
-        <div class="container">
-
-          <h5>Deixe seu comentário:</h5>
-          {# Mensagens do Django (sucesso, erro, etc.) serão exibidas aqui #}
-          {% if messages %}
-              <ul class="messages list-unstyled"> {# Usando list-unstyled para remover bullets padrão #}
-                  {% for message in messages %}
-                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-                      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                          {{ message }}
-                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      </div>
-                  </li>
-                  {% endfor %}
-              </ul>
-          {% endif %}
-
-          {% if user.is_authenticated %}
-            <form id="comment" action="{% url 'addcomment' post.id %}" method="POST"> {# Usando url template tag #}
-              {% csrf_token %}
-              <div class="row">
-                <div class="col-md-12 col-sm-12">
-                  <fieldset>
-                    {# O campo 'name' será preenchido na view com o username se o user estiver logado. #}
-                    {# Adicionado 'readonly' para usuários logados e 'required' para deslogados. #}
-                    <input value="{% if user.is_authenticated %}{{ user.username }}{% else %}{{ form.name.value|default:"" }}{% endif %}" 
-                           name="name" 
-                           type="text" 
-                           id="name" 
-                           {% if user.is_authenticated %}readonly{% else %}required{% endif %}>
-                  </fieldset>
+                        <button class="btn btn-secondary mt-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#commentsOffcanvas{{post.id}}" aria-controls="commentsOffcanvas{{post.id}}">
+                            Ver comentários: <span class="badge bg-light text-dark">{{ post.approved_comments_list.count }}</span>
+                        </button>
+                    </div>
+                    
+                    {# Offcanvas para exibir os comentários #}
+                    <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="commentsOffcanvas{{post.id}}" aria-labelledby="commentsOffcanvasLabel{{post.id}}">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="commentsOffcanvasLabel{{post.id}}">Todos os comentários ({{ post.approved_comments_list.count }})</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            {% for comment in post.approved_comments_list %}
+                                <div class="mb-3 p-2 border rounded bg-light">
+                                    <strong>{{ comment.name }}</strong>
+                                    <p class="text-muted mb-1"><small>{{ comment.created_at|date:"d/m/y H:i" }}</small></p>
+                                    <p>{{ comment.comment|linebreaks }}</p>
+                                </div>
+                            {% empty %}
+                                <p class="text-center text-muted">Nenhum comentário aprovado ainda.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
-                <br><br>
-                <div class="col-lg-12">
-                  <fieldset>
-                    <textarea name="comment"  rows="3" cols="52" id="message" placeholder="Type your comment" required=""></textarea>
-                  </fieldset>
-                </div>
-                <div class="col-lg-12">
-                  <fieldset>
-                    <button type="submit" id="form-submit" class="main-button">Submit</button>
-                  </fieldset>
-                </div>
-              </div>
-            </form>
-            <br>
-          {% else %}
-          <span style="font-size: 16px;">É necessário estar logado, <a href="{% url 'login' %}">Acessar</a> / <a href="{% url 'signup' %}">Cadastrar</a></span>
-          <br><br>
-          {% endif %}
-
-          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#balbueno{{post.id}}" aria-controls="offcanvasWithBothOptions">Ver comentários: {{ post.comments.count }}</button>
-
-        </div><br>
-        
-        <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="balbueno{{post.id}}" aria-labelledby="offcanvasWithBothOptionsLabel">
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">todos os {{ post.comments.count }} comentários</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div class="offcanvas-body">
-            {# Exibe comentários associados a este post. Você pode filtrar por approved_comment=True aqui ou na view #}
-            {% for comment in post.comments.all %}
-            <hr>
-            <div class="container">
-              <strong>{{ comment.name }}</strong>
-              <p>{{ comment.created_at|date:"d/m/y"}}</p>
-              {% if not comment.approved_comment %}
-                  <p>Precisa ser aprovado...</p>
-              {% else %}
-                  <p>{{ comment.comment|linebreaks }}</p>
-              {% endif %}    
             </div>
-            {% empty %}
-            <hr>
-              <p>Nenhum comentário ainda :(</p>
-            {% endfor %}
-          </div>
-          <br>
-        </div> 
-      </div>
+        </div>
+    {% empty %}
+        <p class="text-center">Nenhuma postagem encontrada.</p>
+    {% endfor %}
     </div>
-    <br>
-   
-  {% endfor %}
 
-  {# Repetindo a paginação após os posts, como já estava. #}
-  <nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-center">
-      {% if artigo.has_previous %}
-      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
-      {% endif %}
-      {% if artigo.has_next %}
-      <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
-      {% endif %}
-    </ul>
-  </nav>
+    {# Paginação #}
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {% if artigo.has_previous %}
+            <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
+            {% endif %}
+            {% if artigo.has_next %}
+            <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
+            {% endif %}
+        </ul>
+    </nav>
 
+</div>
 {% endblock %}

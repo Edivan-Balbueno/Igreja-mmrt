@@ -1,0 +1,45 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    Detalhes do Participante
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+        <h2 class="mb-4">Detalhes do Participante</h2>
+        <hr>
+        <p><strong>Nome completo:</strong> {{ participante.nome_completo }}</p>
+        <p><strong>Telefone:</strong> {{ participante.telefone }}</p>
+        {% if participante.nome_lider %}
+            <p><strong>Nome do líder:</strong> {{ participante.nome_lider }}</p>
+        {% endif %}
+        {% if participante.nome_amigo_familiar %}
+            <p><strong>Nome do amigo/familiar:</strong> {{ participante.nome_amigo_familiar }}</p>
+            <p><strong>Telefone do amigo/familiar:</strong> {{ participante.telefone_amigo_familiar }}</p>
+        {% endif %}
+        {% if participante.expectativas %}
+            <p><strong>Expectativas:</strong> {{ participante.expectativas|linebreaks }}</p>
+        {% endif %}
+
+        <hr>
+        <p><strong>Pagamento:</strong> 
+            {% if participante.evento_pago %}
+                <span class="badge bg-success">Pago</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Pendente</span>
+            {% endif %}
+        </p>
+
+        <p class="text-muted"><small>Cadastrado em: {{ participante.data_cadastro|date:"d/m/Y H:i" }}</small></p>
+
+        {# USE A VARIÁVEL BOOLEANA AQUI #}
+        {% if is_admin %}
+            <a href="{% url 'editar_participante' participante.id %}" class="btn btn-warning mt-3 me-2">Editar</a>
+        {% endif %}
+        
+        <a href="{% url 'gerenciar_participantes' %}"  class="btn btn-secondary mt-3">Lista de participantes</a>
+    </div>
+</div>
+{% endblock %}

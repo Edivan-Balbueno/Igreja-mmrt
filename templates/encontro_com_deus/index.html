@@ -1,0 +1,16 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>{{ titulo }}</h1>
+        <hr>
+        <p>Bem-vindo ao aplicativo "Encontro com Deus"!</p>
+        <p>Para se cadastrar, clique no botão abaixo.</p>
+        <a href="{% url 'cadastro_participante' %}" class="btn btn-primary mt-3">Fazer Cadastro</a>
+    </div>
+{% endblock %}

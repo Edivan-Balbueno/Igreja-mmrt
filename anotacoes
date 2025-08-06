@@ -559,3 +559,52 @@ LOGIN_REDIRECT_URL = '/index'
 LOGOUT_REDIRECT_URL = '/perfil'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+
+
+index
+
+
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">{{ titulo }}</h1>
+        <hr>
+        <p class="text-center mb-4">Igreja Ministério de Missões Restaurando a Terra</p>
+        <h5 class="text-center mb-4">17/18/19 outubro, Valor 350,00</h5>
+        <div class="text-center mb-4">
+            <a href="{% url 'cadastro_participante' %}" class="btn btn-primary mt-3">Quero Participar</a>
+        </div>
+        <h2 class="text-center mb-4">Galeria de Fotos do Encontro</h2>
+        <hr>
+        
+        {% if encontro_images %}
+            <div class="row">
+                {% for image in encontro_images %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.caption }}" style="height: 250px; object-fit: cover;">
+                            <div class="card-body">
+                                {% if image.caption %}
+                                    <p class="card-text text-center">{{ image.caption }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">Ainda não há fotos para exibir.</p>
+        {% endif %}
+
+        <hr class="mt-5">
+        
+    </div>
+
+{% endblock %}

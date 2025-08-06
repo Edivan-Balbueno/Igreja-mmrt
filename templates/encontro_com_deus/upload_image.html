@@ -1,0 +1,18 @@
+{% extends '_layout1.html' %}
+
+{% block head_title %}
+    Carregar Imagem
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Carregar Nova Imagem</h2>
+    <hr>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success mt-3">Carregar</button>
+        <a href="{% url 'gerenciar_imagens' %}" class="btn btn-secondary mt-3">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

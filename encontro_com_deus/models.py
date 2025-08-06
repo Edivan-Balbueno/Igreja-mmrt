@@ -14,3 +14,16 @@ class Participante(models.Model):
 
     def __str__(self):
         return self.nome_completo
+
+class EncontroImage(models.Model):
+    image = models.ImageField(upload_to='encontro_fotos/')
+    caption = models.CharField(max_length=255, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Imagem do Encontro"
+        verbose_name_plural = "Imagens do Encontro"
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"Imagem de {self.uploaded_at.strftime('%Y-%m-%d')}"

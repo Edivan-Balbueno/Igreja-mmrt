@@ -1,0 +1,34 @@
+{% extends '_layout1.html' %}
+
+{% block head_title %}
+    Gerenciar Imagens do Encontro
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Gerenciar Imagens do Encontro</h2>
+    <hr>
+    <a href="{% url 'upload_image' %}" class="btn btn-primary mb-3">Carregar Nova Imagem</a>
+
+    {% if images %}
+        <div class="row">
+            {% for image in images %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.caption }}">
+                        <div class="card-body">
+                            <p class="card-text">{{ image.caption }}</p>
+                            <a href="{% url 'delete_image' image.id %}" class="btn btn-danger btn-sm">Excluir</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Nenhuma imagem encontrada.</p>
+    {% endif %}
+    <div class="mt-4">
+        <a href="{% url 'perfil' %}" class="btn btn-secondary">Voltar ao Perfil</a>
+    </div>
+</div>
+{% endblock %}

@@ -2,12 +2,19 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ParticipanteForm
-from .models import Participante
+from .models import Participante, EncontroImage
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 
 def index(request):
-    return render(request, 'encontro_com_deus/index.html', {'titulo': 'Encontro com Deus'})
+    # Busque todas as imagens do Encontro com Deus
+    encontro_images = EncontroImage.objects.all().order_by('-uploaded_at')
+
+    context = {
+        'titulo': 'Encontro com Deus',
+        'encontro_images': encontro_images, # Passe as imagens para o template
+    }
+    return render(request, 'encontro_com_deus/index.html', context)
 
 def cadastro_participante(request):
     if request.method == 'POST':
@@ -84,3 +91,39 @@ def confirmar_pagamento(request, participante_id):
         messages.success(request, f'O pagamento para {participante.nome_completo} foi confirmado com sucesso.')
     
     return redirect('gerenciar_participantes')
+
+@login_required
+@permission_required('encontro_com_deus.add_encontroimage', raise_exception=True)
+def gerenciar_imagens(request):
+    images = EncontroImage.objects.all()
+    return render(request, 'encontro_com_deus/gerenciar_imagens.html', {'images': images})
+
+@login_required
+@permission_required('encontro_com_deus.add_encontroimage', raise_exception=True)
+def upload_image(request):
+    if request.method == 'POST':
+        form = EncontroImageForm(request.POST, request.FILES) # <-- O FORMULÁRIO AINDA PRECISA SER CRIADO
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Imagem carregada com sucesso!')
+            return redirect('gerenciar_imagens')
+    else:
+        form = EncontroImageForm()
+    return render(request, 'encontro_com_deus/upload_image.html', {'form': form})
+
+@login_required
+@permission_required('encontro_com_deus.delete_encontroimage', raise_exception=True)
+def delete_image(request, image_id):
+    image = get_object_or_404(EncontroImage, pk=image_id)
+    if request.method == 'POST':
+        image.delete()
+        messages.success(request, 'Imagem excluída com sucesso.')
+        return redirect('gerenciar_imagens')
+    return render(request, 'encontro_com_deus/confirm_delete_image.html', {'image': image})
+
+# Para o formulário de upload, crie o arquivo encontro_com_deus/forms.py
+from django import forms
+class EncontroImageForm(forms.ModelForm):
+    class Meta:
+        model = EncontroImage
+        fields = ['image', 'caption']

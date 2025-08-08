@@ -32,6 +32,10 @@
             {% endif %}
         </p>
 
+        {% if not participante.evento_pago %}
+            <a href="{% url 'pagar_agora' participante.id %}" class="btn btn-primary mt-3">Pagar Agora</a>
+        {% endif %}
+
         <p class="text-muted"><small>Cadastrado em: {{ participante.data_cadastro|date:"d/m/Y H:i" }}</small></p>
 
         {# USE A VARIÁVEL BOOLEANA AQUI #}

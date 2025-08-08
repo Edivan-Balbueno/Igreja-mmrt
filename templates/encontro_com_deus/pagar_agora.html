@@ -1,0 +1,54 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    Pagar agora
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Pagar Agora</h2>
+        <hr>
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <h5 class="text-center mb-4">Observação: ao concluir o pagamento favor enviar o comprovante para o Pastor Edevaldo</h5>
+                <a href="https://wa.me/5567996481210?text=Graça e Paz." target="_blank">
+                <button style="background-color: #25d366; color: white; padding: 15px 30px; border: none; border-radius: 25px; font-size: 18px; cursor: pointer;">
+                    Contato do Pastor
+                </button></a>
+                <br>
+                <br>
+                <h6 class="text-center mb-4">Para confirmar a sua inscrição, realize o pagamento via PIX. Use o QR Code abaixo ou a opção "copia e cola".</h6>
+                <br>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">QR Code para Pagamento</h5>
+                        <img src="{% static qrcode_image_url %}" alt="QR Code para pagamento" class="img-fluid mb-3" style="max-width: 300px;">
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Chave "Copia e Cola"</h5>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ pix_copia_e_cola }}" id="pix_code" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto()">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{% url 'detalhes_participante' participante.id %}" class="btn btn-secondary mt-4">Voltar</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copiarTexto() {
+            var copyText = document.getElementById("pix_code");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Para dispositivos móveis
+            document.execCommand("copy");
+            alert("Código copiado!");
+        }
+    </script>
+{% endblock %}

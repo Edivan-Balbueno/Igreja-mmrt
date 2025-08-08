@@ -16,4 +16,5 @@ urlpatterns = [
     path('gerenciar_imagens/', views.gerenciar_imagens, name='gerenciar_imagens'),
     path('upload_image/', views.upload_image, name='upload_image'),
     path('delete_image/<int:image_id>/', views.delete_image, name='delete_image'),
+    path('detalhes/<int:participante_id>/pagar_agora/', views.pagar_agora, name='pagar_agora'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # NECESSÁRIO PARA SERVIR AS IMAGENS NO DESENVOLVIMENTO

@@ -127,3 +127,17 @@ class EncontroImageForm(forms.ModelForm):
     class Meta:
         model = EncontroImage
         fields = ['image', 'caption']
+
+def pagar_agora(request, participante_id):
+    participante = get_object_or_404(Participante, pk=participante_id)
+
+    # Dados do QR Code fornecidos pelo utilizador
+    qrcode_image_url = 'images/enconito_com_Deus.JPEG'
+    pix_copia_e_cola = '00020126710014br.gov.bcb.pix0114+55679964812100231Pagamento do Encontro com Deus.5204000053039865406350.005802BR5929Edevaldo Xisperes de Oliveira6008Dourados62070503***6304BA9A' # Substitua pelo seu código real
+
+    context = {
+        'participante': participante,
+        'qrcode_image_url': qrcode_image_url,
+        'pix_copia_e_cola': pix_copia_e_cola,
+    }
+    return render(request, 'encontro_com_deus/pagar_agora.html', context)

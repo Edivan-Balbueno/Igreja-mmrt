@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -17,9 +18,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-tf0gr--97sr5#g2r64fi*ij&6poik7za#^mqsj9zm444g9++ru'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
-ALLOWED_HOSTS = []
+DEBUG = False
+
+#ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['balbuen.pythonanywhere.com']
 
 # Application definition
 
@@ -72,8 +77,11 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Balbuen$default',  # Nome do seu banco de dados
+        'USER': 'Balbuen',         # Seu nome de usuário
+        'PASSWORD': 'brendabrenda',     # Sua senha do PythonAnywhere
+        'HOST': 'Balbuen.mysql.pythonanywhere-services.com', # Hostname
     }
 }
 
@@ -119,8 +127,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_ROOT = os.path.join(BASE_DIR, "public")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'public'),]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

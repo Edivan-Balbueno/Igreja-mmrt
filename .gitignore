@@ -14,7 +14,7 @@ db.sqlite3
 .vscode/
 .idea/
 media/
-static/
+#static/
 anotacoes
 
 # Environment variables

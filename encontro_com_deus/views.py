@@ -11,7 +11,7 @@ def index(request):
     encontro_images = EncontroImage.objects.all().order_by('-uploaded_at')
 
     context = {
-        'titulo': 'Encontro com Deus',
+        'titulo': 'Encontro com Deus para Homens',
         'encontro_images': encontro_images, # Passe as imagens para o template
     }
     return render(request, 'encontro_com_deus/index.html', context)
@@ -132,7 +132,7 @@ def pagar_agora(request, participante_id):
     participante = get_object_or_404(Participante, pk=participante_id)
 
     # Dados do QR Code fornecidos pelo utilizador
-    qrcode_image_url = 'images/enconito_com_Deus.JPEG'
+    qrcode_image_url = 'images/enconito_com_Deus.jpeg'
     pix_copia_e_cola = '00020126710014br.gov.bcb.pix0114+55679964812100231Pagamento do Encontro com Deus.5204000053039865406350.005802BR5929Edevaldo Xisperes de Oliveira6008Dourados62070503***6304BA9A' # Substitua pelo seu código real
 
     context = {

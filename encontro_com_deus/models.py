@@ -11,6 +11,10 @@ class Participante(models.Model):
     expectativas = models.TextField(blank=True, null=True)
     evento_pago = models.BooleanField(default=False) # <-- NOVO CAMPO
     data_cadastro = models.DateTimeField(auto_now_add=True)
+    trabalho_encontro = models.BooleanField(
+        default=False,
+        verbose_name="Vou trabalhar no Encontro"
+    )
 
     def __str__(self):
         return self.nome_completo

@@ -12,7 +12,8 @@ class ParticipanteForm(forms.ModelForm):
             'nome_lider',
             'nome_amigo_familiar',
             'telefone_amigo_familiar',
-            'expectativas'
+            'expectativas',
+            'trabalho_encontro',
         ]
         widgets = {
             'nome_completo': forms.TextInput(attrs={'placeholder': 'Digite o nome completo'}),
@@ -21,7 +22,9 @@ class ParticipanteForm(forms.ModelForm):
             'nome_amigo_familiar': forms.TextInput(attrs={'placeholder': 'Digite o nome do amigo/familiar (opcional)'}),
             'telefone_amigo_familiar': forms.TextInput(attrs={'placeholder': 'Ex: (99) 99999-9999 (opcional)'}),
             'expectativas': forms.Textarea(attrs={'placeholder': 'Digite suas expectativas para o Encontro (opcional)', 'rows': 4}),
+            'trabalho_encontro': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        
         labels = {
             'nome_completo': 'Nome completo:',
             'telefone': 'Telefone:',
@@ -29,4 +32,5 @@ class ParticipanteForm(forms.ModelForm):
             'nome_amigo_familiar': 'Nome de um Amigo ou Familiar:',
             'telefone_amigo_familiar': 'Telefone do Amigo ou Familiar:',
             'expectativas': 'O que espera desse Encontro? Expectativas?',
+            'trabalho_encontro': 'Vou trabalhar no Encontro',
         }

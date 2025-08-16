@@ -11,7 +11,7 @@ def index(request):
     encontro_images = EncontroImage.objects.all().order_by('-uploaded_at')
 
     context = {
-        'titulo': 'Encontro com Deus para Homens',
+        'titulo': '14° Encontro com Deus para Homens',
         'encontro_images': encontro_images, # Passe as imagens para o template
     }
     return render(request, 'encontro_com_deus/index.html', context)
@@ -43,11 +43,33 @@ def detalhes_participante(request, participante_id):
 @login_required
 @permission_required('encontro_com_deus.change_participante', raise_exception=True)
 def gerenciar_participantes(request):
-    participantes = Participante.objects.all().order_by('nome_completo')
+    # Obtém o parâmetro de filtro da URL (por exemplo, '?filtro=pendente')
+    filtro = request.GET.get('filtro')
+
+    # Obter todos os participantes para a contagem, independente do filtro
+    todos_participantes = Participante.objects.all()
+
+    # Define o queryset inicial para a lista a ser exibida
+    participantes_list = todos_participantes.order_by('nome_completo')
+
+    # Aplica o filtro se ele existir na URL
+    if filtro == 'vai_trabalhar':
+        participantes_list = todos_participantes.filter(trabalho_encontro=True).order_by('nome_completo')
+    elif filtro == 'nao_vai_trabalhar':
+        participantes_list = todos_participantes.filter(trabalho_encontro=False).order_by('nome_completo')
+    elif filtro == 'pagamentos_pendentes':
+        participantes_list = todos_participantes.filter(evento_pago=False).order_by('nome_completo')
+    
     context = {
         'titulo': 'Gerenciar Participantes',
-        'participantes': participantes,
+        'participantes': participantes_list,
+        'total_participantes': todos_participantes.count(),
+        'vai_trabalhar': todos_participantes.filter(trabalho_encontro=True).count(),
+        'nao_vai_trabalhar': todos_participantes.filter(trabalho_encontro=False).count(),
+        'pagamentos_pendentes': todos_participantes.filter(evento_pago=False).count(),
+        'filtro_ativo': filtro,  # Adiciona o filtro ativo ao contexto
     }
+
     return render(request, 'encontro_com_deus/gerenciar_participantes.html', context)
 
 

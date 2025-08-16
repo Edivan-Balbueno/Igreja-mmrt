@@ -30,7 +30,8 @@
             <div class="col-md-3">
                 <a href="{% url 'gerenciar_participantes' %}?filtro=nao_vai_trabalhar" class="card bg-info text-white shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'nao_vai_trabalhar' %}border border-white border-2{% endif %}">
                     <div class="card-body">
-                        <h5 class="card-title">Participantes</h5> <p class="card-text fs-2">{{ nao_vai_trabalhar }}</p>
+                        <h5 class="card-title">Participantes</h5>
+                        <p class="card-text fs-2">{{ nao_vai_trabalhar }}</p>
                     </div>
                 </a>
             </div>
@@ -50,8 +51,6 @@
                     <thead>
                         <tr>
                             <th>Nome Completo</th>
-                            <th>Telefone</th>
-                            <th>Telefone de Emergência</th>
                             <th>Pagamento</th>
                             <th>Trabalha</th>
                             <th>Ações</th>
@@ -61,8 +60,6 @@
                         {% for participante in participantes %}
                             <tr>
                                 <td>{{ participante.nome_completo }}</td>
-                                <td>{{ participante.telefone }}</td>
-                                <td>{{ participante.telefone_amigo_familiar }}</td>
                                 <td>
                                     {% if participante.evento_pago %}
                                         <span class="badge bg-success">Pago</span>
@@ -78,6 +75,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    <a href="{% url 'editar_participante' participante.pk %}" class="btn btn-warning btn-sm">Editar</a>
                                     <a href="{% url 'detalhes_participante' participante.pk %}" class="btn btn-info btn-sm">Detalhes</a>
                                 </td>
                             </tr>

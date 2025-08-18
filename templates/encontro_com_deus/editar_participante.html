@@ -2,28 +2,52 @@
 {% load static %}
 
 {% block head_title %}
-    Editar Participante
+    {{ titulo }}
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card p-4 shadow-sm">
-                <h2 class="text-center mb-4">Editar Participante: {{ participante.nome_completo }}</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4 shadow-sm">
+                    <h2 class="text-center mb-4">Editar Participante</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {# Exclui os campos de checkbox para renderizá-los separadamente #}
+                            {% if field.field.widget.input_type != 'checkbox' %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <hr>
+                        
+                        {# Renderiza os campos de checkbox separadamente com formatação de checkbox #}
+                        <div class="mb-3 form-check">
+                            {{ form.trabalho_encontro }}
+                            <label class="form-check-label" for="{{ form.trabalho_encontro.id_for_label }}">
+                                {{ form.trabalho_encontro.label }}
+                            </label>
                         </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-success w-100 mt-4">Salvar Alterações</button>
-                    <a href="{% url 'detalhes_participante' participante.id %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
-                </form>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.evento_pago }}
+                            <label class="form-check-label" for="{{ form.evento_pago.id_for_label }}">
+                                {{ form.evento_pago.label }}
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mt-4">Salvar Alterações</button>
+                        <a href="{% url 'gerenciar_participantes' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

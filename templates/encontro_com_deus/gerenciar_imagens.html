@@ -1,34 +1,52 @@
 {% extends '_layout1.html' %}
+{% load static %}
 
-{% block head_title %}
-    Gerenciar Imagens do Encontro
-{% endblock %}
+{% block head_title %}Gerenciar Imagens{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Gerenciar Imagens do Encontro</h2>
-    <hr>
-    <a href="{% url 'upload_image' %}" class="btn btn-primary mb-3">Carregar Nova Imagem</a>
+    <div class="container mt-5">
+        <h1>Gerenciar Mídias</h1>
+        <hr>
 
-    {% if images %}
-        <div class="row">
-            {% for image in images %}
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.caption }}">
-                        <div class="card-body">
-                            <p class="card-text">{{ image.caption }}</p>
-                            <a href="{% url 'delete_image' image.id %}" class="btn btn-danger btn-sm">Excluir</a>
-                        </div>
-                    </div>
+        <a href="{% url 'upload_image' %}" class="btn btn-success mb-3">Adicionar Nova Mídia</a>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
-        </div>
-    {% else %}
-        <p>Nenhuma imagem encontrada.</p>
-    {% endif %}
-    <div class="mt-4">
-        <a href="{% url 'perfil' %}" class="btn btn-secondary">Voltar ao Perfil</a>
+        {% endif %}
+
+        {% if encontro_images %}
+            <div class="row">
+                {% for image in encontro_images %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            {% if image.media %}
+                                {% if '.mp4' in image.media.url|lower or '.mov' in image.media.url|lower or '.webm' in image.media.url|lower %}
+                                    <video controls class="card-img-top" style="max-height: 250px; width: 100%; object-fit: cover;">
+                                        <source src="{{ image.media.url }}" type="video/mp4">
+                                        Seu navegador não suporta o formato de vídeo.
+                                    </video>
+                                {% else %}
+                                    <img src="{{ image.media.url }}" class="card-img-top" alt="{{ image.caption }}">
+                                {% endif %}
+                            {% endif %}
+                            <div class="card-body">
+                                <p class="card-text">{{ image.caption }}</p>
+                                <form action="{% url 'delete_image' image.id %}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta mídia?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm mt-2">Excluir</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Nenhuma mídia encontrada. Adicione a primeira mídia!</p>
+        {% endif %}
     </div>
-</div>
 {% endblock %}

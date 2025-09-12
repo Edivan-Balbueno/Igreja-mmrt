@@ -1,7 +1,7 @@
 # encontro_com_deus/forms.py
 
 from django import forms
-from .models import Participante
+from .models import Participante, EncontroImage
 
 class ParticipanteForm(forms.ModelForm):
     class Meta:
@@ -35,4 +35,13 @@ class ParticipanteForm(forms.ModelForm):
             'expectativas': 'O que espera desse Encontro? Expectativas?',
             'trabalho_encontro': 'Vou trabalhar no Encontro',
             'evento_pago': 'Pagamento (evento pago)', # Adicione este label
+        }
+
+class EncontroImageForm(forms.ModelForm):
+    class Meta:
+        model = EncontroImage
+        fields = ['media', 'caption'] # <-- CORRIGIDO AQUI
+        labels = {
+            'media': 'Arquivo de Mídia (Imagem ou Vídeo)',
+            'caption': 'Legenda'
         }

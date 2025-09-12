@@ -1,7 +1,7 @@
 # encontro_com_deus/views.py
 
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ParticipanteForm
+from .forms import ParticipanteForm, EncontroImageForm
 from .models import Participante, EncontroImage
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
@@ -115,19 +115,19 @@ def confirmar_pagamento(request, participante_id):
     return redirect('gerenciar_participantes')
 
 @login_required
-@permission_required('encontro_com_deus.add_encontroimage', raise_exception=True)
+@permission_required('encontro_com_deus.view_encontroimage', raise_exception=True)
 def gerenciar_imagens(request):
-    images = EncontroImage.objects.all()
-    return render(request, 'encontro_com_deus/gerenciar_imagens.html', {'images': images})
+    encontro_images = EncontroImage.objects.all().order_by('-uploaded_at')
+    return render(request, 'encontro_com_deus/gerenciar_imagens.html', {'encontro_images': encontro_images})
 
 @login_required
 @permission_required('encontro_com_deus.add_encontroimage', raise_exception=True)
 def upload_image(request):
     if request.method == 'POST':
-        form = EncontroImageForm(request.POST, request.FILES) # <-- O FORMULÁRIO AINDA PRECISA SER CRIADO
+        form = EncontroImageForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Imagem carregada com sucesso!')
+            messages.success(request, 'Mídia carregada com sucesso!')
             return redirect('gerenciar_imagens')
     else:
         form = EncontroImageForm()
@@ -142,13 +142,6 @@ def delete_image(request, image_id):
         messages.success(request, 'Imagem excluída com sucesso.')
         return redirect('gerenciar_imagens')
     return render(request, 'encontro_com_deus/confirm_delete_image.html', {'image': image})
-
-# Para o formulário de upload, crie o arquivo encontro_com_deus/forms.py
-from django import forms
-class EncontroImageForm(forms.ModelForm):
-    class Meta:
-        model = EncontroImage
-        fields = ['image', 'caption']
 
 def pagar_agora(request, participante_id):
     participante = get_object_or_404(Participante, pk=participante_id)

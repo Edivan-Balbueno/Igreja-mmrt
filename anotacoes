@@ -704,6 +704,712 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 setting  servidor local
 
 
+Django==5.0.6
+
+Criar o venv
+-> python -m venv venv
+Ativar e desativar o venv
+- > .\venv\Scripts\activate
+- > .\venv\Scripts\deactivate
+recriar o venv
+- > python -m venv venv
+instalar o requeriments.txt
+- > pip install -r requeriments.txt
+ler as bibliotecas
+- > pip freeze
+salvar
+- > pip freeze > requeriments.txt
+
+criar projeto e app Django
+- > django-admin startproject webapp .
+
+- > django-admin startapp blog
+
+- >django-admin startapp accounts
+
+Habilitar o app /modulo blog
+Criar uma view para app blog
+Adicionar as rotas
+Inicializar o servidor de desenvolvimento para teste
+-> python manage.py runserver
+Criar uma template HTML
+
+view => resposta
+rotas => caminho
+template => resposta HTML
+
+6. criar uma templates Html
+
+view => respostas
+rotas => caminho
+templates => resposta Html
+
+
+======== introdução ao templates ======
+
+- estrutura para reutilização _base.html
+- template de layout genérico _layout1.html
+- aplicar o layout genérico em um final
+- arquivos estáticos
+- usar arquivo estático  : favicon
+
+
+    {{ user }} => imprimi variaveis
+    {% if var == 1 %} => executa comandos
+    <a> oi </a>
+    {# só comentarios #} => comentarios
+
+======= INTRODUÇÃO AO MODELS  =======
+
+Assista ao video 09 primeiro
+
+- introdução ao ORM e models    ===
+- Migração de dados             ===
+- Reversão de modelos           ===
+- Criar um model                ===
+- Exibir dados em um template   ===
+
+Exemplo de models
+
+class PostMmrt(models.Model) :
+    author = models.CharField(max_length=200)
+    pub_date = models.DateField("Data de publicação")
+    titulo_blog = models.CharField(max_length=200)
+    conteudo_artigo = models.TextField()
+
+    def __str__(self):
+        return self.titulo_blog
+
+
+comandos migracoes models
+python manage.py migrate
+python manage.py showmigrations
+python manage.py makemigrations
+python manage.py migrate
+
+reverter
+python manage.py migrate auth 0001
+python manage.py (nome do model) auth zero
+
+manipular Banco de dados
+from polls.models import Question
+Question.objects.all()
+
+>>> from datetime import datetime
+>>> agora = datetime.now()
+>>> question1 = Question(question_text="Qual a sua cor preferida ?", pub_date=agora)
+>>> question1.question_text
+'Qual a sua cor preferida ?'
+>>> question1.id
+>>> question1.save()
+>>> question1.id
+1
+>>> quit()
+ saindo
+
+======== VIDEO 6 registro de login de usuarios======
+
+- Definir o redicionamento padrão apos login e logout
+- Criar um novo Django app para gestão de contas de usuarios
+- Criar e personalizar um form Django registro de usuarios
+- Criar a view e o template para registro de usuarios
+- Criar as rotas especificas para gestçao de contas
+- Controle de acsso pela sessão logada
+
+em class no parametro se usa self.
+em Def no parametro se usa request.
+
+
+======= video 7 Flash messages
+
+- Configurar as classes css para as mensagens
+- Incluir o suporte padrão de mensagens na view
+- Incluir a exibição das mensagens em nosso templates
+- Testar
+
+======= vídeo #08  personalização do registro do usuário com novos campos
+
+- > Reverter as migrações dos modelos de dados
+- > Criar um Model User personalizado
+- > Adaptar o form de registro para coletar os novos campos
+
+arquivos manipulados
+accounts models
+accounts forms
+settings
+
+========= video #09  O Poder da ÁREA ADMINISTRATIVA
+The Django admin site
+
+- > python manage.py migrate
+- > Criar um usuário administrativo
+- > Acessar a área administrativa
+- > Explorar a área administrativa
+- > Incluir o Model Question na area administrativa
+- > Model CustomUser na área administrativa
+
+cmd
+ python manage.py createsuperuser
+Usuário: Adm_Balbueno
+Endereço de email: edivanbalbueno@gmail.com
+Password: di09lu16
+
+asista ao video 08
+
+
+
+arquivos manipulados
+
+polls admin para adicionar polls models na area adm
+polls apps
+polls models
+accounts admin
+problema nsta aula
+
+======== vídeo 10 > CRUD Básico = Create
+
+- > Criar a classe  QuestionForm
+- > Implementar as views
+- > Criar o template para exibir o formulário
+- > Definir as rotas  para as views
+- > Crontrolede acesso as rotas
+
+==== CRUD = Create, Read, Update e Delete
+
+==== Upload de imagem para o perfil do usuário
+
+arquivos manipulados
+
+polls forms
+polls views
+polls question
+polls urls
+templates index
+
+========== video 11 > CRUD Básico = Update
+
+- > Implementar as views: uma baseada em classe e a outra em função
+- > Definir as rotas para as views
+- > Adicionar link/botão para "editar Pergunta"
+- > Personalizar o título do formulário de criação
+- >
+arquivos manipulados
+polls views
+polls forms
+polls urls
+question.html
+
+========== video 12 > CRUD Básico = Delete
+
+- > Implementar as views para exclusão de perguntas
+- > Criar templates para a confirmação de exclusão
+- > Definir as rotas para views
+- > Adicionar link/botão para "Excluir Pergunta"
+- >
+
+arquivos manipulados
+polls views
+templates polls question_confirm_delete_form.html
+templates polls question.html
+
+
+=== 33 - Como Conectar e Usar um Banco MySQL
+
+1) Instalar o pacote mysqlclient via pip
+2) criar um banco de dados vazio
+3) Configurar a conexão com MySQL
+4) Migrar os modelos para o novo banco
+
+
+==== 37 - COMO Preparar o Sistema para a Producao - Servidor
+
+1  Instalar o modulo de servidor WSGI - gunicorn
+   pip install gunicorn
+
+2  Configurar e executar o servidor de produção
+   gunicorn webapp.wsgi:application
+
+3 Definir uma página principal
+
+
+===== 38 - Como Usar Variaveis de Ambiente (dotenv)
+
+
+1 Instalar e configurar o modulo dotenv
+2 obter variaveis de ambiente
+3 Criar o arquivo .env
+
+
+===== 38 - Como Usar Variáveis de Ambiente (dotenv)
+
+1 Instalar e configurar o módulo dotenv
+2 obter variaveis de ambiente
+3 Criar o arquivo .env
+4 criar SECRET_KEY
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
+
+===== 39- Enviar o projeto para o Github
+
+Pré-requistos: conta no Github e git instalado
+
+1 Inicializar e configurar o repositório git no projeto ( git init )
+rotular o comit ( git config --global user.email "edivanbalbueno@gmail.com" )
+( git config --global user.name "edivan-balbueno"  )
+2 Criar um novo repositório no Github
+3 Executar o primeiro commit (salvar no repositório)
+4 Vincular o repositório local ao Github e sincronizar
+
+
+
+
+40 - Como Publicar seu sistema no Pythonanywhere.com
+
+Pré-requisto: projeto no Github
+
+1) Criar uma conta no serviço Pythonanywhere.com
+2)   criar novo webapp na hospedagem
+
+   mkvirtualenv django4 --python=/usr/bin/python3.10
+
+3) Criar um ambiente virtual para o Django 4 / Python 10
+4) Clonar o projeto do Github e instalar o pacotes necessários
+5) Criar arquivo .venv
+6) Processar os arquivo estáticos
+7) Configurar o serviço WEB e testar
+
+class Comment(models.Model):
+    STATUS = (
+        ('Aprovado', 'Aprovado'),
+        ('Não aprovado', 'Não aprovado'),
+    )
+    post = models.ForeignKey(PostMmrt, on_delete=models.CASCADE)
+
+    name = models.CharField(max_length=255, blank=False)
+    comment = models.TextField()
+
+    status = models.CharField(choices=STATUS, max_length=15, default="Não aprovado")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+
+
+
+{% csrf_token %}
+{% for artigo in artigo %}
+
+  <div class="container">
+    <div class="border border-success">
+      <div class="container">
+        <br>
+        <h4>Autor: {{artigo.author}}</h4>
+        <p>{{artigo.pub_date|date:"d/m/y"}}</p>
+        <HR>
+        <h1>{{artigo.titulo_blog}}</h1>
+        <br>
+        {{artigo.conteudo_artigo|safe}}
+      </div>
+    <hr>
+
+    <div class="container">
+      <h5>Deixe seu comentário: {{ artigo.comments.count }}</h5>
+      {% if user.is_authenticated %}
+      {% csrf_token %}
+      <form id="comment" action="/addcomment/{{artigo.id}}" method="POST">
+        <div class="row">
+          <div class="col-md-12 col-sm-12">
+            <fieldset>
+              <input value="{{ user.username }}" name="name" type="text" id="name" required="">
+            </fieldset>
+          </div>
+          <br><br>
+          <div class="col-lg-12">
+            <fieldset>
+              <textarea name="comment"  rows="3" cols="52" id="message" placeholder="Type your comment" required=""></textarea>
+            </fieldset>
+          </div>
+          <div class="col-lg-12">
+            <fieldset>
+              <button type="submit" id="form-submit" class="main-button">Submit</button>
+            </fieldset>
+          </div>
+        </div>
+      </form>
+      {% else %}
+      <span style="font-size: 16px;">É necessário estar logado, <a href="{% url 'login' %}">Acessar</a> / <a href="{% url 'signup' %}">Cadastrar</a></span>
+      {% endif %}
+    </div>
+    
+{% for comment in artigo.comments.all %}
+  
+  <hr>
+    <div class="container">
+      <strong>{{ comment.name }}</strong>
+      <p>{{ comment.created_at|date:"d/m/y"}}</p>
+      {% if not comment.approved_comment %}
+      <p>Precisa ser aprovado...</p>
+      {% else %}
+      <p>{{ comment.comment|linebreaks }}</p>
+    </div>
+  {% endif %}
+{% empty %}
+<hr>
+  <p>No comments here yet :</p>
+
+{% endfor %}
+  
+    </div>
+  </div>
+
+<br>
+
+link https://youtu.be/vimZLEd702Y?si=XHMe5PsSvzSUQz3C
+ 
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .background-image {
+        display: grid;
+        place-content: center;
+        text-align: center;
+        min-height: 200px;
+     /* position: relative; 
+        isolation: isolate; */
+    }
+
+    .background-image::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        background-image: url("/static/images/criancas.jpeg");
+        background-repeat: no-repeat;
+        height: 130vh;
+        opacity: .4;
+    }
+</style>
+
+Páginação
+
+[COMO Paginar Resultados] CRIE um Aplicativo WEB [Django do Zero #20]
+https://www.youtube.com/watch?v=AyfNWy6BgdI&list=PLFOqHo8oIjzewcT23HCxJV0xWO451CTJe&index=21&t=261s
+
+https://www.youtube.com/watch?v=GVZhI-4SOFI
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    {% if artigo.has_previous %}
+    <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.previous_page_number}}"> Anterior </a></li>
+    {% endif %}
+    {% if artigo.has_next %}
+    <li class="page-item"><a class="page-link" href="{% url 'index' %}?page={{artigo.next_page_number}}"> Próximo </a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+fora da tela
+
+https://getbootstrap.com/docs/5.3/components/offcanvas/
+
+
+ <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
+                    Gerenciar Comentários (se houver uma view específica)
+
+settings local
+
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv() # Carrega as variáveis do .env
+
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-tf0gr--97sr5#g2r64fi*ij&6poik7za#^mqsj9zm444g9++ru'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'blog.apps.BlogConfig',
+    'accounts.apps.AccountsConfig',
+    'django_summernote',
+    'encontro_com_deus',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'webapp.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # <-- Adicione esta linha!
+        'APP_DIRS': True, # Mantenha esta linha também, para templates de apps
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'webapp.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
+
+LANGUAGE_CODE = 'pt-br'
+
+TIME_ZONE = 'America/Sao_Paulo'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, "public")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
+LOGIN_REDIRECT_URL = '/index'
+LOGOUT_REDIRECT_URL = '/perfil'
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+
+-_-_-_-_-_-_-_-_-_-_
+  
+setting  servidor
+
+
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv() # Carrega as variáveis do .env
+
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-tf0gr--97sr5#g2r64fi*ij&6poik7za#^mqsj9zm444g9++ru'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+#DEBUG = True
+
+DEBUG = False
+
+#ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['balbuen.pythonanywhere.com']
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'blog.apps.BlogConfig',
+    'accounts.apps.AccountsConfig',
+    'django_summernote',
+    'encontro_com_deus',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'webapp.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # <-- Adicione esta linha!
+        'APP_DIRS': True, # Mantenha esta linha também, para templates de apps
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'webapp.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Balbuen$default',  # Nome do seu banco de dados
+        'USER': 'Balbuen',         # Seu nome de usuário
+        'PASSWORD': 'brendabrenda',     # Sua senha do PythonAnywhere
+        'HOST': 'Balbuen.mysql.pythonanywhere-services.com', # Hostname
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
+
+LANGUAGE_CODE = 'pt-br'
+
+TIME_ZONE = 'America/Sao_Paulo'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'public'),]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
+LOGIN_REDIRECT_URL = '/index'
+LOGOUT_REDIRECT_URL = '/perfil'
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+
+
+
+-_-_-_-_-_-_-_-_-_-_
+  
+setting  servidor local
+
+
 from pathlib import Path
 import os
 from dotenv import load_dotenv

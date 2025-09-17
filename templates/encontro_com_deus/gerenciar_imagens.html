@@ -26,12 +26,12 @@
                         <div class="card">
                             {% if image.media %}
                                 {% if '.mp4' in image.media.url|lower or '.mov' in image.media.url|lower or '.webm' in image.media.url|lower %}
-                                    <video controls class="card-img-top" style="max-height: 250px; width: 100%; object-fit: cover;">
+                                    <video controls class="card-img-top" style="width: 100%; height: auto;">
                                         <source src="{{ image.media.url }}" type="video/mp4">
                                         Seu navegador não suporta o formato de vídeo.
                                     </video>
                                 {% else %}
-                                    <img src="{{ image.media.url }}" class="card-img-top" alt="{{ image.caption }}">
+                                    <img src="{{ image.media.url }}" class="card-img-top" alt="{{ image.caption }}" style="width: 100%; height: auto;">
                                 {% endif %}
                             {% endif %}
                             <div class="card-body">

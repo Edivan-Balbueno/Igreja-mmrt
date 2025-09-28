@@ -1,0 +1,15 @@
+{% extends '_layout1.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Editar Participante: {{ participante.nome_completo|default:'Nenhum nome' }}</h1>
+        <hr>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary mt-3">Salvar Alterações</button>
+            <a href="{% url 'detalhes_participante' participante.id %}" class="btn btn-secondary mt-3">Voltar</a>
+        </form>
+    </div>
+{% endblock %}

@@ -39,10 +39,6 @@
                 <a href="{% url 'blog_admin_dashboard' %}" class="list-group-item list-group-item-action">
                     Aceder ao Painel de Administração do Blog
                 </a>
-                <!--
-                <a href="{ 3% url 'create_blog_admin' %}" class="list-group-item list-group-item-action">
-                    Criar Novo Administrador do Blog
-                -->
                 <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
                     Gerenciar Comentários (se houver uma view específica)
                 </a>
@@ -50,11 +46,17 @@
                 <a href="{% url 'carousel_image_list' %}" class="list-group-item list-group-item-action">
                     Gerir Imagens do Carrossel
                 </a>
+            </div>    
+            <h3 class="mt-4">Controle do Eventos</h3>
+            <div class="list-group">
                 <a href="{% url 'gerenciar_participantes' %}" class="list-group-item list-group-item-action">
                     Gerenciar Participantes do Encontro
                 </a>
                 <a href="{% url 'gerenciar_imagens' %}" class="list-group-item list-group-item-action">
                      Gerenciar Imagens do Encontro
+                </a>
+                <a href="{% url 'criar_evento' %}" class="list-group-item list-group-item-action">
+                    Gerenciar Eventos
                 </a>
             </div>
             <p class="mt-2 text-muted">Você possui permissões de administrador do blog.</p>

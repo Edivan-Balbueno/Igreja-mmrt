@@ -1,0 +1,29 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    Eventos - MMRT
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Próximos Eventos</h1>
+        <hr>
+        {% if eventos %}
+            <div class="list-group">
+                {% for evento in eventos %}
+                    <a href="{% url 'detalhes_evento' evento.slug %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ evento.titulo }}</h5>
+                            <small class="text-muted">{{ evento.data_inicio }}</small>
+                        </div>
+                        <p class="mb-1">{{ evento.descricao|truncatechars:100 }}</p>
+                        <small>Local: {{ evento.local }}</small>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">Nenhum evento ativo no momento.</p>
+        {% endif %}
+    </div>
+{% endblock %}

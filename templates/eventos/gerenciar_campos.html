@@ -1,0 +1,89 @@
+{% extends '_layout1.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+    Gerenciar Campos
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <a href="{% url 'gerenciar_evento' slug=evento.slug %}" class="btn btn-secondary">
+            ← Voltar para Gestão do Evento
+        </a>
+        
+        <h1>Gerenciar Campos do Formulário para o Evento: {{ evento.titulo }}</h1>
+        <hr>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                {% for field in form %}
+                <div class="col-md-6">
+                    <div class="form-check mb-3">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Salvar Campos</button>
+        </form>
+
+        <hr class="my-5">
+
+        {% if dynamic_form.fields %}
+        <div class="card p-4">
+            <h2 class="card-title text-center">Pré-visualização do Formulário</h2>
+            <p class="text-center text-muted">A aparência final dependerá do CSS, mas esta é a ordem e os tipos de campo.</p>
+            <hr>
+            <form>
+                {% for field in dynamic_form %}
+                    <div class="mb-3">
+                        {% if field.field.widget.input_type == 'checkbox' %}
+                            <div class="form-check">
+                                {{ field }}
+                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            </div>
+                        {% elif field.field.widget.input_type == 'radio' %}
+                            <p class="mt-3"><strong>{{ field.label }}</strong></p>
+                            {{ field }}
+                        {% else %}
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="alert alert-danger mt-2">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center mt-4">
+            Nenhum campo selecionado. Por favor, selecione os campos acima para visualizá-los aqui.
+        </div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'gerenciar_evento' slug=evento.slug %}" class="btn btn-secondary">
+                 ← Voltar para Gestão do Evento
+            </a>
+        </div>
+    </div>
+{% endblock %}

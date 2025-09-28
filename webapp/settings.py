@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 load_dotenv() # Carrega as variáveis do .env
 
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,8 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
     'accounts.apps.AccountsConfig',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'widget_tweaks',
     'django_summernote',
     'encontro_com_deus',
+    'eventos',
 ]
 
 MIDDLEWARE = [
@@ -84,7 +90,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -126,8 +131,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'public'),]
+STATIC_ROOT = os.path.join(BASE_DIR, "public")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
@@ -137,3 +142,22 @@ LOGIN_REDIRECT_URL = '/index'
 LOGOUT_REDIRECT_URL = '/perfil'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# URL Base do seu projeto
+# Use 'http://127.0.0.1:8000' para desenvolvimento local
+# Mude para o seu domínio (ex: 'https://seu-dominio.com') em produção
+BASE_URL = 'http://127.0.0.1:8000'
+
+# Defina o caminho ABSOLUTO para o seu arquivo de logo
+# EX: Assumindo que o logo está em [Seu Projeto]/static/images/logo.png
+QRCODE_LOGO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'logoqrcode.JPEG')

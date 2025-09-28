@@ -1,0 +1,52 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    {{ evento.titulo }}
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center">{{ evento.titulo }}</h1>
+        <hr>
+        <p class="text-center mb-4">Igreja Ministério de Missões Restaurando a Terra</p>
+        <p class="text-center"><strong>Data:</strong> {{ evento.data_inicio }} {% if evento.data_fim %}a {{ evento.data_fim }}{% endif %}</p>
+        <p class="text-center"><strong>Valor:</strong> {{ evento.valor }}</p>
+        <p class="text-center">{{ evento.descricao }}</p>
+        
+        {# Botão para cadastro de participantes #}
+        <div class="text-center">
+            <a href="{% url 'cadastro_participante_dinamico' evento.id %}" class="btn btn-primary mt-3">
+                Quero Participar
+            </a>
+        </div>
+
+        <hr class="my-4">
+        
+        <h2 class="text-center">Mídias do Evento</h2>
+        {% if midias %}
+            <div class="row mt-4">
+                {% for midia in midias %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            {% if midia.media_type == 'image' %}
+                                <img src="{{ midia.media_file.url }}" class="card-img-top" alt="{{ midia.descricao }}">
+                            {% elif midia.media_type == 'video' %}
+                                <video controls class="card-img-top">
+                                    <source src="{{ midia.media_file.url }}" type="video/mp4">
+                                    Seu navegador não suporta a tag de vídeo.
+                                </video>
+                            {% endif %}
+                            <div class="card-body">
+                                <p class="card-text">{{ midia.descricao }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">Ainda não há mídias para este evento.</p>
+        {% endif %}
+        
+    </div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends '_layout1.html' %}
+{% load static %}
+
+{% block head_title %}
+    Editar Evento
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <a href="{% url 'gerenciar_evento' slug=evento.slug %}" class="btn btn-secondary">
+            ← Voltar para Gestão do Evento
+        </a>
+        <h1>Editar Evento: {{ evento.titulo }}</h1>
+        <hr>
+        {% include 'messages.html' %}
+        <form method="post">
+            {% csrf_token %}
+            
+            {# Renderiza todos os campos do formulário, incluindo o checkbox #}
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-primary">Atualizar Evento</button>
+        </form>
+        <a href="{% url 'gerenciar_campos' evento.id %}" class="btn btn-secondary mt-3">Gerenciar Campos do Formulário</a>
+    </div>
+{% endblock %}

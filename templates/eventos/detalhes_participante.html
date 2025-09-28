@@ -1,0 +1,52 @@
+{% extends '_layout1.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="container mt-5">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        </div>
+        {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'lista_participantes' participante.evento.id %}" class="btn btn-secondary mb-4">← Voltar para a Lista</a>
+        {% endif %}
+
+        <h1>Detalhes do Participante: {{ participante.nome_completo|default:'Nenhum nome' }}</h1>
+        <hr>
+
+        <ul class="list-group">
+            <li class="list-group-item"><strong>ID do Participante:</strong> {{ participante.id }}</li>
+            
+            <li class="list-group-item">
+                <strong>Pagamento:</strong> 
+                <span class="badge {% if participante.pagamento_recebido %}bg-success{% else %}bg-warning{% endif %}">
+                    {% if participante.pagamento_recebido %}Pago{% else %}Pendente{% endif %}
+                </span>
+                
+                {% if not participante.pagamento_recebido %}
+                    <a href="{% url 'pagamento_agora' participante.id %}" class="btn btn-primary btn-sm ms-2">Pagar Agora</a>
+                {% endif %}
+            </li>
+            
+            <li class="list-group-item">
+                <strong>Trabalha:</strong> 
+                <span class="badge {% if participante.trabalha_no_evento %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ participante.trabalha_no_evento|yesno:"Sim,Não" }}
+                </span>
+            </li>
+        </ul>
+
+        <h3 class="mt-4">Respostas do Formulário</h3>
+        <ul class="list-group">
+            {% for resposta in respostas %}
+                <li class="list-group-item"><strong>{{ resposta.campo.nome_campo }}:</strong> {{ resposta.valor|default:"-" }}</li>
+            {% empty %}
+                <li class="list-group-item">Nenhuma resposta encontrada.</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

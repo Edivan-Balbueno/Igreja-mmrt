@@ -1,0 +1,18 @@
+{% extends '_layout1.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Confirmar Pagamento</h1>
+        <hr>
+        
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">Pagamento para {{ participante.nome_completo|default:'Este Participante' }}</h4>
+            <p>Confirme se o pagamento de **R$ {{ participante.evento.valor }}** foi recebido.</p>
+        </div>
+        
+        <form method="post" action="{% url 'confirmar_pagamento' participante.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Confirmar e Pagar</button>
+            <a href="{% url 'lista_participantes' participante.evento.id %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}

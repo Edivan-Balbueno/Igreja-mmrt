@@ -10,6 +10,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('summernote/', include('django_summernote.urls')),
     path('encontro-com-deus/', include('encontro_com_deus.urls')),
+    path('eventos/', include('eventos.urls')),
 ]
 
 if settings.DEBUG:

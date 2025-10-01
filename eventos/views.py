@@ -466,13 +466,6 @@ def lista_eventos(request):
     eventos = Evento.objects.all().order_by('-data_inicio')
     return render(request, 'eventos/lista_eventos.html', {'eventos': eventos})
 
-import mercadopago
-from django.conf import settings
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
-from .models import Evento, Participante, Pagamento
-
 @csrf_exempt
 def mercado_pago_ipn(request):
     """

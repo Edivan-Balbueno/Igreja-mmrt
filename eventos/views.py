@@ -395,7 +395,6 @@ def pagamento_agora(request, participante_id):
     participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
     evento = participante.evento
 
-    # Verifica se o evento tem um valor para pagamento
     if not evento.valor or float(evento.valor) <= 0:
         messages.error(request, "O valor do evento não está definido ou é zero. Não é possível gerar o link de pagamento.")
         return redirect('detalhes_participante', participante_id=participante.id)
@@ -403,6 +402,7 @@ def pagamento_agora(request, participante_id):
     try:
         sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
+        # Dados da preferência de pagamento COMPLETA
         preference_data = {
             "items": [
                 {
@@ -410,19 +410,29 @@ def pagamento_agora(request, participante_id):
                     "quantity": 1,
                     "unit_price": float(evento.valor),
                     "id": participante.id,
+                    "category_id": "services", # Otimização para aprovação
                 }
             ],
+            # URLs para onde o Mercado Pago irá redirecionar após o pagamento (navegador do usuário)
             "back_urls": {
                 "success": request.build_absolute_uri(f'/eventos/pagamento/sucesso/{participante.id}/'),
                 "pending": request.build_absolute_uri(f'/eventos/pagamento/pendente/{participante.id}/'),
                 "failure": request.build_absolute_uri(f'/eventos/pagamento/falha/{participante.id}/'),
             },
+            # Dados do pagador (Otimização para aprovação)
+            "payer": { 
+                "email": participante.email 
+            },
+            # external_reference é crucial para o IPN saber qual participante atualizar
             "external_reference": str(participante.id),
+            
+            # CRÍTICO: URL para onde o Mercado Pago enviará as notificações automáticas (back-end)
             "notification_url": request.build_absolute_uri(
                 reverse('mercado_pago_ipn')
-            ),
+            ), 
         }
 
+        # Cria a preferência de pagamento na API do Mercado Pago
         preference_response = sdk.preference().create(preference_data)
 
         if 'response' not in preference_response or 'init_point' not in preference_response['response']:
@@ -430,12 +440,12 @@ def pagamento_agora(request, participante_id):
             error_message = error_details.get('message', 'Erro desconhecido da API do Mercado Pago.')
             raise Exception(f"Erro na criação da preferência: {error_message}")
 
+        # Redireciona para o link de pagamento
         return redirect(preference_response['response']['init_point'])
 
     except Exception as e:
         messages.error(request, f"Ocorreu um erro ao gerar o link de pagamento: {e}")
         return redirect('detalhes_participante', participante_id=participante.id)
-
 
 # Manter o decorador nas views de retorno
 @csrf_exempt
@@ -467,19 +477,23 @@ def lista_eventos(request):
     eventos = Evento.objects.all().order_by('-data_inicio')
     return render(request, 'eventos/lista_eventos.html', {'eventos': eventos})
 
+# Coloque esta função no final do seu arquivo eventos/views.py
+
 @csrf_exempt
 def mercado_pago_ipn(request):
     """
     View que recebe as notificações automáticas (IPN) do Mercado Pago.
-    Atualiza o status do participante diretamente.
+    Atualiza o status do participante (pagamento_recebido).
+    Retorna 200 OK em todos os caminhos para evitar reenvio do MP.
     """
     # 1. Resposta para Testes (GET)
     if request.method == 'GET':
+        # Retorna 200 OK para o Mercado Pago testar a URL (como visto no seu screenshot de sucesso)
         return HttpResponse('IPN URL OK', status=200) 
 
     # 2. Processamento da Notificação (POST)
     if request.method == 'POST':
-        # As notificações geralmente vêm como form data no request.POST
+        # As notificações geralmente vêm como form data (request.POST) ou query params
         data = request.POST 
         topic = data.get('topic') or data.get('type')
         resource_id = data.get('id')
@@ -490,32 +504,36 @@ def mercado_pago_ipn(request):
                 sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
                 # Consulta o status real do pagamento na API
+                # Se a consulta falhar, a exceção será capturada no final.
                 payment_response = sdk.payment().get(resource_id)
                 payment = payment_response.get('response')
 
                 if payment and payment['status'] == 'approved':
-                    # CORREÇÃO CRÍTICA: external_reference contém o ID do PARTICIPANTE, não do Evento
+                    # O external_reference foi definido como participante.id na view pagamento_agora
                     participante_id = payment.get('external_reference')
                     
                     if participante_id:
                         # Busca o participante pelo ID fornecido no external_reference
+                        # Isso garante que a notificação está ligada ao participante correto.
                         participante = ParticipanteEvento.objects.get(pk=int(participante_id))
 
                         if not participante.pagamento_recebido:
                             participante.pagamento_recebido = True
                             participante.save()
-                            # Aqui você pode adicionar lógica de log, mas NUNCA messages.
+                            # Opcional: Adicione aqui uma função de log.
 
-                # 3. CRÍTICO: Retornar 200 OK em todos os casos de sucesso/erro de lógica
+                # 3. CRÍTICO: Retornar 200 OK é o requisito do Mercado Pago.
+                # Se chegarmos aqui, a notificação foi processada ou o status não era 'approved'.
                 return HttpResponse('Notification processed successfully', status=200)
 
             except ParticipanteEvento.DoesNotExist:
-                # O participante não foi encontrado (erro de lógica), mas retorna 200 para evitar reenvio
+                # O participante não foi encontrado, mas retorna 200 OK para evitar reenvio do MP
                 return HttpResponse('Participante not found, accepted', status=200) 
+            
             except Exception as e:
-                # Log o erro para depuração, mas retorna 200 para evitar reenvio
+                # Captura qualquer erro de consulta de API ou SDK e retorna 200 OK para evitar reenvio
                 print(f"Erro ao processar IPN: {e}")
                 return HttpResponse('Error processing notification', status=200)
 
-    # 4. Resposta padrão para evitar reenvios (se não for POST ou GET)
-    return HttpResponse(status=200) 
+    # 4. Resposta padrão para qualquer requisição inválida ou que não seja POST/GET de teste
+    return HttpResponse(status=200)

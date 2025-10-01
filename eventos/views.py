@@ -512,8 +512,8 @@ def mercado_pago_ipn(request):
         # Recupere o evento e o participante relacionados ao pagamento
         try:
             evento = Evento.objects.get(id=payment_data['external_reference'])
-            participante = Participante.objects.get(evento=evento, email=payment_data['payer']['email'])
-        except (Evento.DoesNotExist, Participante.DoesNotExist) as e:
+            participante = ParticipanteEvento.objects.get(evento=evento, email=payment_data['payer']['email'])
+        except (Evento.DoesNotExist, ParticipanteEvento.DoesNotExist) as e:
             return JsonResponse({'status': 'fail', 'message': f'Erro ao associar pagamento ao evento/participante: {str(e)}'}, status=400)
 
         # Se o pagamento foi aprovado

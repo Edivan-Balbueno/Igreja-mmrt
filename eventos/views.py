@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 import qrcode
+import json
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.files import File
@@ -390,7 +391,7 @@ def detalhes_participante(request, participante_id):
 def pagamento_agora(request, participante_id):
     """
     Gera um link de pagamento do Mercado Pago para um participante.
-    Redireciona para a página do Mercado Pago para completar a transação.
+    Inclui lógica robusta para encontrar o e-mail, mesmo que não esteja salvo no modelo.
     """
     participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
     evento = participante.evento
@@ -399,10 +400,32 @@ def pagamento_agora(request, participante_id):
         messages.error(request, "O valor do evento não está definido ou é zero. Não é possível gerar o link de pagamento.")
         return redirect('detalhes_participante', participante_id=participante.id)
 
+    # 1. LÓGICA DE RECUPERAÇÃO DO E-MAIL
+    email_pagador = None
+
+    # Tenta obter o e-mail diretamente do campo do modelo (se existir e estiver preenchido)
+    if hasattr(participante, 'email') and participante.email:
+        email_pagador = participante.email
+    
+    # Se o e-mail ainda não foi encontrado, busca nos campos dinâmicos
+    if not email_pagador:
+        try:
+            # Assume que o nome do campo dinâmico de e-mail é 'E-mail'
+            email_response = RespostaCampo.objects.get(
+                participante=participante,
+                campo__nome_campo='E-mail'
+            )
+            email_pagador = email_response.valor
+        except RespostaCampo.DoesNotExist:
+            # Se não for possível encontrar o e-mail, exibe erro e para
+            messages.error(request, "Erro: Não foi possível encontrar o e-mail do participante. Inscrição incompleta.")
+            return redirect('detalhes_participante', participante_id=participante.id)
+
+    # Fim da lógica de recuperação do e-mail
+
     try:
         sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
-        # Dados da preferência de pagamento COMPLETA
         preference_data = {
             "items": [
                 {
@@ -410,29 +433,24 @@ def pagamento_agora(request, participante_id):
                     "quantity": 1,
                     "unit_price": float(evento.valor),
                     "id": participante.id,
-                    "category_id": "services", # Otimização para aprovação
+                    "category_id": "services",
                 }
             ],
-            # URLs para onde o Mercado Pago irá redirecionar após o pagamento (navegador do usuário)
             "back_urls": {
                 "success": request.build_absolute_uri(f'/eventos/pagamento/sucesso/{participante.id}/'),
                 "pending": request.build_absolute_uri(f'/eventos/pagamento/pendente/{participante.id}/'),
                 "failure": request.build_absolute_uri(f'/eventos/pagamento/falha/{participante.id}/'),
             },
-            # Dados do pagador (Otimização para aprovação)
+            # USA A VARIÁVEL email_pagador GARANTIDA
             "payer": { 
-                "email": participante.email 
+                "email": email_pagador 
             },
-            # external_reference é crucial para o IPN saber qual participante atualizar
             "external_reference": str(participante.id),
-            
-            # CRÍTICO: URL para onde o Mercado Pago enviará as notificações automáticas (back-end)
             "notification_url": request.build_absolute_uri(
                 reverse('mercado_pago_ipn')
-            ), 
+            ),
         }
 
-        # Cria a preferência de pagamento na API do Mercado Pago
         preference_response = sdk.preference().create(preference_data)
 
         if 'response' not in preference_response or 'init_point' not in preference_response['response']:
@@ -440,10 +458,10 @@ def pagamento_agora(request, participante_id):
             error_message = error_details.get('message', 'Erro desconhecido da API do Mercado Pago.')
             raise Exception(f"Erro na criação da preferência: {error_message}")
 
-        # Redireciona para o link de pagamento
         return redirect(preference_response['response']['init_point'])
 
     except Exception as e:
+        # Exibe o erro de forma mais amigável, mas registra o erro real para depuração
         messages.error(request, f"Ocorreu um erro ao gerar o link de pagamento: {e}")
         return redirect('detalhes_participante', participante_id=participante.id)
 

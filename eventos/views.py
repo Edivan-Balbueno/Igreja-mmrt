@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 import qrcode
+from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
@@ -469,84 +470,52 @@ def lista_eventos(request):
 @csrf_exempt
 def mercado_pago_ipn(request):
     """
-    Função para processar as notificações IPN do Mercado Pago.
-    A função recebe a notificação do Mercado Pago, valida o pagamento e
-    atualiza o status do pagamento no sistema.
+    View que recebe as notificações automáticas (IPN) do Mercado Pago.
+    Atualiza o status do participante diretamente.
     """
+    # 1. Resposta para Testes (GET)
+    if request.method == 'GET':
+        return HttpResponse('IPN URL OK', status=200) 
+
+    # 2. Processamento da Notificação (POST)
     if request.method == 'POST':
-        # Instancia o SDK do Mercado Pago com o token de acesso
-        sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-        
-        # Recupera o corpo da notificação IPN
-        body = request.body.decode('utf-8')
+        # As notificações geralmente vêm como form data no request.POST
+        data = request.POST 
+        topic = data.get('topic') or data.get('type')
+        resource_id = data.get('id')
 
-        # Verifica se o corpo da requisição está vazio
-        if not body:
-            return JsonResponse({'status': 'fail', 'message': 'Corpo da requisição vazio'}, status=400)
+        # Processa apenas notificações de pagamento válidas
+        if topic == 'payment' and resource_id:
+            try:
+                sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
-        # Parse do JSON da notificação IPN
-        data = json.loads(body)
+                # Consulta o status real do pagamento na API
+                payment_response = sdk.payment().get(resource_id)
+                payment = payment_response.get('response')
 
-        # Verifica o tipo de notificação (pagamento)
-        if 'topic' not in data or 'id' not in data:
-            return JsonResponse({'status': 'fail', 'message': 'Notificação inválida'}, status=400)
+                if payment and payment['status'] == 'approved':
+                    # CORREÇÃO CRÍTICA: external_reference contém o ID do PARTICIPANTE, não do Evento
+                    participante_id = payment.get('external_reference')
+                    
+                    if participante_id:
+                        # Busca o participante pelo ID fornecido no external_reference
+                        participante = ParticipanteEvento.objects.get(pk=int(participante_id))
 
-        # Realiza a consulta do pagamento utilizando o ID do Mercado Pago
-        payment_info = sdk.payment().get(data['id'])
+                        if not participante.pagamento_recebido:
+                            participante.pagamento_recebido = True
+                            participante.save()
+                            # Aqui você pode adicionar lógica de log, mas NUNCA messages.
 
-        if payment_info['status'] != 200:
-            return JsonResponse({'status': 'fail', 'message': 'Falha ao consultar pagamento no Mercado Pago'}, status=400)
+                # 3. CRÍTICO: Retornar 200 OK em todos os casos de sucesso/erro de lógica
+                return HttpResponse('Notification processed successfully', status=200)
 
-        payment_data = payment_info['response']
+            except ParticipanteEvento.DoesNotExist:
+                # O participante não foi encontrado (erro de lógica), mas retorna 200 para evitar reenvio
+                return HttpResponse('Participante not found, accepted', status=200) 
+            except Exception as e:
+                # Log o erro para depuração, mas retorna 200 para evitar reenvio
+                print(f"Erro ao processar IPN: {e}")
+                return HttpResponse('Error processing notification', status=200)
 
-        # Verifica o status do pagamento
-        payment_status = payment_data['status']
-
-        # Recupere o evento e o participante relacionados ao pagamento
-        try:
-            evento = Evento.objects.get(id=payment_data['external_reference'])
-            participante = ParticipanteEvento.objects.get(evento=evento, email=payment_data['payer']['email'])
-        except (Evento.DoesNotExist, ParticipanteEvento.DoesNotExist) as e:
-            return JsonResponse({'status': 'fail', 'message': f'Erro ao associar pagamento ao evento/participante: {str(e)}'}, status=400)
-
-        # Se o pagamento foi aprovado
-        if payment_status == 'approved':
-            # Cria ou atualiza o pagamento no banco de dados
-            pagamento, created = Pagamento.objects.get_or_create(
-                participante=participante,
-                evento=evento,
-                defaults={'status': 'pago', 'valor': payment_data['transaction_amount'], 'mp_payment_id': payment_data['id']}
-            )
-            if not created:
-                pagamento.status = 'pago'
-                pagamento.valor = payment_data['transaction_amount']
-                pagamento.save()
-
-            # Atualiza o status do evento ou participante
-            evento.status = 'concluído'
-            evento.save()
-
-            # Exemplo de envio de notificação para o usuário
-            messages.success(request, f'Pagamento aprovado para o evento: {evento.nome}!')
-            return JsonResponse({'status': 'success', 'message': 'Pagamento aprovado e atualizado'}, status=200)
-
-        # Se o pagamento foi recusado ou pendente
-        elif payment_status in ['rejected', 'pending']:
-            pagamento, created = Pagamento.objects.get_or_create(
-                participante=participante,
-                evento=evento,
-                defaults={'status': payment_status, 'valor': payment_data['transaction_amount'], 'mp_payment_id': payment_data['id']}
-            )
-            if not created:
-                pagamento.status = payment_status
-                pagamento.save()
-
-            # Notificar usuário
-            messages.error(request, f'Pagamento {payment_status} para o evento: {evento.nome}!')
-            return JsonResponse({'status': 'success', 'message': f'Pagamento {payment_status} atualizado'}, status=200)
-
-        else:
-            return JsonResponse({'status': 'fail', 'message': f'Pagamento em status desconhecido: {payment_status}'}, status=400)
-
-    else:
-        return JsonResponse({'status': 'fail', 'message': 'Método HTTP não permitido'}, status=405)
+    # 4. Resposta padrão para evitar reenvios (se não for POST ou GET)
+    return HttpResponse(status=200) 

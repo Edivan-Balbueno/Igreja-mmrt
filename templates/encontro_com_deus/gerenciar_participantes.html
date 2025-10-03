@@ -12,7 +12,7 @@
 
         <div class="row mb-4 text-center">
             <div class="col-md-3">
-                <a href="{% url 'gerenciar_participantes' %}" class="card bg-primary text-white shadow-sm p-2 text-decoration-none {% if not filtro_ativo %}border border-white border-2{% endif %}">
+                <a href="{% url 'encontro_com_deus:gerenciar_participantes' %}" class="card bg-primary text-white shadow-sm p-2 text-decoration-none {% if not filtro_ativo %}border border-white border-2{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Total de Participantes</h5>
                         <p class="card-text fs-2">{{ total_participantes }}</p>
@@ -20,7 +20,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'gerenciar_participantes' %}?filtro=vai_trabalhar" class="card bg-success text-white shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'vai_trabalhar' %}border border-white border-2{% endif %}">
+                <a href="{% url 'encontro_com_deus:gerenciar_participantes' %}?filtro=vai_trabalhar" class="card bg-success text-white shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'vai_trabalhar' %}border border-white border-2{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Vão Trabalhar</h5>
                         <p class="card-text fs-2">{{ vai_trabalhar }}</p>
@@ -28,7 +28,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'gerenciar_participantes' %}?filtro=nao_vai_trabalhar" class="card bg-info text-white shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'nao_vai_trabalhar' %}border border-white border-2{% endif %}">
+                <a href="{% url 'encontro_com_deus:gerenciar_participantes' %}?filtro=nao_vai_trabalhar" class="card bg-info text-white shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'nao_vai_trabalhar' %}border border-white border-2{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Participantes</h5>
                         <p class="card-text fs-2">{{ nao_vai_trabalhar }}</p>
@@ -36,7 +36,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'gerenciar_participantes' %}?filtro=pagamentos_pendentes" class="card bg-warning text-dark shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'pagamentos_pendentes' %}border border-white border-2{% endif %}">
+                <a href="{% url 'encontro_com_deus:gerenciar_participantes' %}?filtro=pagamentos_pendentes" class="card bg-warning text-dark shadow-sm p-2 text-decoration-none {% if filtro_ativo == 'pagamentos_pendentes' %}border border-white border-2{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Pagamentos Pendentes</h5>
                         <p class="card-text fs-2">{{ pagamentos_pendentes }}</p>
@@ -75,8 +75,8 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'editar_participante' participante.pk %}" class="btn btn-warning btn-sm">Editar</a>
-                                    <a href="{% url 'detalhes_participante' participante.pk %}" class="btn btn-info btn-sm">Detalhes</a>
+                                    <a href="{% url 'encontro_com_deus:editar_participante' participante.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                                    <a href="{% url 'encontro_com_deus:detalhes_participante' participante.pk %}" class="btn btn-info btn-sm">Detalhes</a>
                                 </td>
                             </tr>
                         {% endfor %}

@@ -5,6 +5,8 @@ from . import views
 from django.conf import settings # <-- ADICIONE ESTA LINHA
 from django.conf.urls.static import static # <-- E ESTA LINHA
 
+app_name = 'encontro_com_deus' 
+
 urlpatterns = [
     path('', views.index, name='encontro_com_deus_index'),
     path('cadastro/', views.cadastro_participante, name='cadastro_participante'),

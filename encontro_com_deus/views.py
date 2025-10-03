@@ -21,7 +21,7 @@ def cadastro_participante(request):
         form = ParticipanteForm(request.POST)
         if form.is_valid():
             participante = form.save()
-            return redirect('detalhes_participante', participante_id=participante.id)
+            return redirect('encontro_com_deus:detalhes_participante', participante_id=participante.id)
     else:
         form = ParticipanteForm()
     
@@ -97,7 +97,7 @@ def editar_participante(request, participante_id):
         form = ParticipanteForm(request.POST, instance=participante)
         if form.is_valid():
             form.save()
-            return redirect('detalhes_participante', participante_id=participante.id)
+            return redirect('encontro_com_deus:detalhes_participante', participante_id=participante.id)
     else:
         form = ParticipanteForm(instance=participante)
     
@@ -112,7 +112,7 @@ def confirmar_pagamento(request, participante_id):
         participante.save()
         messages.success(request, f'O pagamento para {participante.nome_completo} foi confirmado com sucesso.')
     
-    return redirect('gerenciar_participantes')
+    return redirect('encontro_com_deus:gerenciar_participantes')
 
 @login_required
 @permission_required('encontro_com_deus.view_encontroimage', raise_exception=True)
@@ -128,7 +128,7 @@ def upload_image(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Mídia carregada com sucesso!')
-            return redirect('gerenciar_imagens')
+            return redirect('encontro_com_deus:gerenciar_imagens')
     else:
         form = EncontroImageForm()
     return render(request, 'encontro_com_deus/upload_image.html', {'form': form})
@@ -140,7 +140,7 @@ def delete_image(request, image_id):
     if request.method == 'POST':
         image.delete()
         messages.success(request, 'Imagem excluída com sucesso.')
-        return redirect('gerenciar_imagens')
+        return redirect('encontro_com_deus:gerenciar_imagens')
     return render(request, 'encontro_com_deus/confirm_delete_image.html', {'image': image})
 
 def pagar_agora(request, participante_id):

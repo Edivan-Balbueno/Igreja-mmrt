@@ -8,7 +8,7 @@
         <h1>Gerenciar Mídias</h1>
         <hr>
 
-        <a href="{% url 'upload_image' %}" class="btn btn-success mb-3">Adicionar Nova Mídia</a>
+        <a href="{% url 'encontro_com_deus:upload_image' %}" class="btn btn-success mb-3">Adicionar Nova Mídia</a>
 
         {% if messages %}
             {% for message in messages %}
@@ -36,7 +36,7 @@
                             {% endif %}
                             <div class="card-body">
                                 <p class="card-text">{{ image.caption }}</p>
-                                <form action="{% url 'delete_image' image.id %}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta mídia?');">
+                                <form action="{% url 'encontro_com_deus:delete_image' image.id %}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta mídia?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm mt-2">Excluir</button>
                                 </form>

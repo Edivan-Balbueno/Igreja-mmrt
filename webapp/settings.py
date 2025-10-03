@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -161,4 +162,3 @@ BASE_URL = 'http://127.0.0.1:8000'
 # Defina o caminho ABSOLUTO para o seu arquivo de logo
 # EX: Assumindo que o logo está em [Seu Projeto]/static/images/logo.png
 QRCODE_LOGO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'logoqrcode.JPEG')
-

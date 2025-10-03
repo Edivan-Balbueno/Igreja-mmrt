@@ -13,7 +13,7 @@
                 <h2 class="text-center mb-4">Cadastro de Convidado</h2>
 
                 
-                    <form method="post" action="{% url 'cadastro_participante' %}">
+                    <form method="post" action="{% url 'encontro_com_deus:cadastro_participante' %}">
                         {% csrf_token %}
                         
                         {# Campos do Encontro Ativo (invisíveis, mas necessários para salvar) #}

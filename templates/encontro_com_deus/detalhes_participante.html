@@ -33,17 +33,17 @@
         </p>
 
         {% if not participante.evento_pago %}
-            <a href="{% url 'pagar_agora' participante.id %}" class="btn btn-primary mt-3">Pagar Agora</a>
+            <a href="{% url 'encontro_com_deus:pagar_agora' participante.id %}" class="btn btn-primary mt-3">Pagar Agora</a>
         {% endif %}
 
         <p class="text-muted"><small>Cadastrado em: {{ participante.data_cadastro|date:"d/m/Y H:i" }}</small></p>
 
         {# USE A VARIÁVEL BOOLEANA AQUI #}
         {% if is_admin %}
-            <a href="{% url 'editar_participante' participante.id %}" class="btn btn-warning mt-3 me-2">Editar</a>
+            <a href="{% url 'encontro_com_deus:editar_participante' participante.id %}" class="btn btn-warning mt-3 me-2">Editar</a>
         {% endif %}
         
-        <a href="{% url 'gerenciar_participantes' %}"  class="btn btn-secondary mt-3">Lista de participantes</a>
+        <a href="{% url 'encontro_com_deus:gerenciar_participantes' %}"  class="btn btn-secondary mt-3">Lista de participantes</a>
     </div>
 </div>
 {% endblock %}

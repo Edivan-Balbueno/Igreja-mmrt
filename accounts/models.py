@@ -14,3 +14,5 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True
     )
+    mp_user_id = models.CharField(max_length=255, blank=True, null=True, 
+                                  verbose_name="Mercado Pago User ID")

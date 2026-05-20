@@ -8,6 +8,9 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class Evento(models.Model):
     # Campos de Informação Básica
@@ -25,7 +28,14 @@ class Evento(models.Model):
     is_active = models.BooleanField(default=True)
     
     # Auditoria
-    # criador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='eventos_criados') # Exemplo, se você tiver este campo
+    criador = models.ForeignKey(User, on_delete=models.CASCADE)
+    mp_receiver_id = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        help_text="ID da conta do Mercado Pago (user_id) do criador para receber os pagamentos."
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

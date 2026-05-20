@@ -6,9 +6,13 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 import qrcode
+from PIL import Image
+from io import BytesIO
+import requests
 import json
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.http import HttpResponseServerError, HttpResponseForbidden
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
@@ -35,13 +39,13 @@ def criar_evento(request):
             evento.save()
             messages.success(request, f"O evento '{evento.titulo}' foi criado com sucesso!")
             # Redireciona APÓS o sucesso, sem precisar definir eventos_existentes neste caminho
-            return redirect('gerenciar_evento', slug=evento.slug) 
+            return redirect('gerenciar_evento', slug=evento.slug)
         else:
             messages.error(request, "Ocorreu um erro ao criar o evento. Por favor, corrija os erros no formulário.")
             # Se o POST falhar, o form inválido será passado para o render abaixo.
     else:
         form = EventoForm()
-    
+
     # 2. Defina eventos_existentes aqui, ANTES do contexto, para que esteja sempre disponível
     eventos_existentes = Evento.objects.all().order_by('-data_inicio')
 
@@ -56,13 +60,13 @@ def criar_evento(request):
 @permission_required('eventos.add_eventomidia', raise_exception=True)
 def upload_evento_midia(request, evento_id):
     evento = get_object_or_404(Evento, pk=evento_id)
-    
+
     if request.method == 'POST':
         form = EventoMidiaForm(request.POST, request.FILES)
         if form.is_valid():
             midia = form.save(commit=False)
             midia.evento = evento
-            
+
             # Determina o tipo de mídia
             mime_type = mimetypes.guess_type(midia.media_file.name)[0]
             if mime_type and mime_type.startswith('image'):
@@ -72,30 +76,30 @@ def upload_evento_midia(request, evento_id):
             else:
                 messages.error(request, 'Tipo de arquivo não suportado. Por favor, envie uma imagem ou um vídeo.')
                 # Continua para o render da página com o erro
-            
+
             midia.save()
             messages.success(request, 'Mídia adicionada com sucesso!')
             # Redireciona para a mesma página, forçando a atualização
             return redirect('upload_evento_midia', evento_id=evento.id)
     else:
         form = EventoMidiaForm()
-    
+
     # Busca todas as mídias do evento para exibi-las
     midias = EventoMidia.objects.filter(evento=evento).order_by('-created_at')
-    
+
     context = {
         'evento': evento,
         'form': form,
         'midias': midias,
     }
-    
+
     return render(request, 'eventos/upload_evento_midia.html', context)
 
 def detalhes_evento(request, slug):
     evento = get_object_or_404(Evento, slug=slug)
     # Correção: usar 'created_at' em vez de 'uploaded_at'
     midias = EventoMidia.objects.filter(evento=evento).order_by('-created_at')
-    
+
     context = {
         'evento': evento,
         'midias': midias,
@@ -107,7 +111,7 @@ def eventos_index(request):
     Página de índice para listar todos os eventos ativos em cards.
     """
     eventos = Evento.objects.filter(is_active=True).order_by('data_inicio')
-    
+
     context = {
         'eventos': eventos
     }
@@ -124,7 +128,7 @@ def editar_evento(request, evento_id):
             return redirect('gerenciar_evento', slug=evento.slug)
     else:
         form = EventoEditForm(instance=evento)
-    
+
     context = {
         'form': form,
         'evento': evento
@@ -139,7 +143,7 @@ def gerenciar_evento(request, slug):
     """
     # Buscamos o evento pelo slug, pois a URL de gestão usará o slug
     evento = get_object_or_404(Evento, slug=slug)
-    
+
     context = {
         'evento': evento,
         'qrcode_url': evento.qrcode.url if evento.qrcode else None,
@@ -150,7 +154,7 @@ def gerenciar_evento(request, slug):
 @permission_required('eventos.change_campoformulario', raise_exception=True)
 def gerenciar_campos(request, evento_id):
     evento = get_object_or_404(Evento, pk=evento_id)
-    
+
     campo_mapa = {
         'nome_completo': {'nome': 'Nome completo', 'tipo': 'texto', 'is_required': True, 'ordem': 1},
         'telefone': {'nome': 'Telefone', 'tipo': 'numero', 'is_required': True, 'ordem': 2},
@@ -164,14 +168,14 @@ def gerenciar_campos(request, evento_id):
         'telefone_amigo': {'nome': 'Telefone do Amigo ou Familiar', 'tipo': 'numero', 'is_required': False, 'ordem': 10},
         'trabalhar_no_evento': {'nome': 'Vou trabalhar no Evento', 'tipo': 'checkbox', 'is_required': False, 'ordem': 11},
     }
-    
+
     if request.method == 'POST':
         form = GerenciarCamposForm(request.POST)
         if form.is_valid():
             for field_name, detalhes in campo_mapa.items():
                 if not form.cleaned_data.get(field_name):
                     CampoFormulario.objects.filter(evento=evento, nome_campo=detalhes['nome']).delete()
-            
+
             for field_name, detalhes in campo_mapa.items():
                 if form.cleaned_data.get(field_name):
                     CampoFormulario.objects.update_or_create(
@@ -184,7 +188,7 @@ def gerenciar_campos(request, evento_id):
                             'ordem': detalhes.get('ordem'),
                         }
                     )
-            
+
             messages.success(request, 'Campos do formulário atualizados com sucesso!')
             return redirect('gerenciar_campos', evento_id=evento.pk)
     else:
@@ -193,7 +197,7 @@ def gerenciar_campos(request, evento_id):
         for field_name, detalhes in campo_mapa.items():
             if detalhes['nome'] in campos_ativos_db:
                 initial_data[field_name] = True
-        
+
         form = GerenciarCamposForm(initial=initial_data)
 
     # --- Lógica para gerar a pré-visualização do formulário dinâmico ---
@@ -229,13 +233,13 @@ def gerenciar_campos(request, evento_id):
 def cadastro_participante_dinamico(request, evento_id):
     evento = get_object_or_404(Evento, pk=evento_id)
     campos_ativos = CampoFormulario.objects.filter(evento=evento, is_active=True).order_by('ordem')
-    
+
     if request.method == 'POST':
         form = CadastroParticipanteForm(campos_ativos, request.POST)
 
         if form.is_valid():
             participante = ParticipanteEvento.objects.create(evento=evento)
-            
+
             nome_completo_salvo = ''
             trabalha_no_evento_salvo = False
 
@@ -245,10 +249,10 @@ def cadastro_participante_dinamico(request, evento_id):
 
                 if campo_obj.nome_campo == 'Nome completo':
                     nome_completo_salvo = valor_campo
-                
+
                 if campo_obj.nome_campo == 'E-mail':  # Adicione esta verificação para o e-mail
                     participante.email = valor_campo
-                
+
                 if campo_obj.nome_campo == 'Telefone':  # Adicione esta verificação para o telefone
                     participante.telefone = valor_campo
 
@@ -269,7 +273,7 @@ def cadastro_participante_dinamico(request, evento_id):
             participante_url = request.build_absolute_uri(
                 reverse('detalhes_participante', args=[participante.id])
             )
-            
+
             subject = f'Confirmação de Inscrição no evento: {evento.titulo}'
             message = (
                 f'Olá {participante.nome_completo},\n\n'
@@ -278,7 +282,7 @@ def cadastro_participante_dinamico(request, evento_id):
                 f'{participante_url}\n\n'
                 f'Agradecemos a sua participação.'
             )
-            
+
             send_mail(
                 subject,
                 message,
@@ -293,7 +297,7 @@ def cadastro_participante_dinamico(request, evento_id):
         form = CadastroParticipanteForm(campos_ativos)
 
     return render(request, 'eventos/cadastro_participante.html', {'form': form, 'evento': evento})
-    
+
 
 
 @permission_required('eventos.view_participanteevento', raise_exception=True)
@@ -304,12 +308,12 @@ def lista_participantes(request, evento_id):
     # Coleta os dados para os cards
     total_participantes = participantes.count()
     vao_trabalhar = participantes.filter(trabalha_no_evento=True).count()
-    
+
     # Adicione a contagem dos que NÃO vão trabalhar
     nao_vao_trabalhar = participantes.filter(trabalha_no_evento=False).count()
 
     pagamentos_pendentes = participantes.filter(pagamento_recebido=False).count()
-    
+
     context = {
         'evento': evento,
         'total_participantes': total_participantes,
@@ -329,7 +333,7 @@ def editar_participante(request, participante_id):
     if request.method == 'POST':
         form = EditarParticipanteForm(campos_ativos, participante, request.POST)
         if form.is_valid():
-            
+
             # 1. Salva os campos diretos do modelo ParticipanteEvento
             # Procura o nome completo e o status de trabalho nos dados do formulário dinâmico
             nome_completo_salvo = ''
@@ -337,10 +341,10 @@ def editar_participante(request, participante_id):
             for campo_obj in campos_ativos:
                 field_name = campo_obj.nome_campo.lower().replace(' ', '_').replace('.', '').replace('?', '')
                 valor_campo = form.cleaned_data.get(field_name, '')
-                
+
                 if campo_obj.nome_campo == 'Nome completo':
                     nome_completo_salvo = valor_campo
-                
+
                 if campo_obj.nome_campo == 'Vou trabalhar no Evento':
                     trabalha_no_evento_salvo = True if valor_campo else False
 
@@ -357,7 +361,7 @@ def editar_participante(request, participante_id):
             for campo_obj in campos_ativos:
                 field_name = campo_obj.nome_campo.lower().replace(' ', '_').replace('.', '').replace('?', '')
                 valor_campo = form.cleaned_data.get(field_name, '')
-                
+
                 resposta, created = RespostaCampo.objects.get_or_create(
                     participante=participante,
                     campo=campo_obj,
@@ -371,7 +375,7 @@ def editar_participante(request, participante_id):
             return redirect('detalhes_participante', participante_id=participante.id)
     else:
         form = EditarParticipanteForm(campos_ativos, participante)
-    
+
     context = {
         'form': form,
         'participante': participante,
@@ -388,44 +392,54 @@ def detalhes_participante(request, participante_id):
     }
     return render(request, 'eventos/detalhes_participante.html', context)
 
+
 def pagamento_agora(request, participante_id):
     """
     Gera um link de pagamento do Mercado Pago para um participante.
-    Inclui lógica robusta para encontrar o e-mail, mesmo que não esteja salvo no modelo.
+    Direciona o pagamento para a conta do criador do evento (via sponsor_id),
+    obtendo o ID do criador através do modelo de Usuário (após a conexão OAuth).
     """
     participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
     evento = participante.evento
 
+    # --- INÍCIO: Lógica de Recuperação de E-mail (Sem Alterações) ---
+    email_pagador = None
+
+    if hasattr(participante, 'email') and participante.email:
+        email_pagador = participante.email
+    
+    if not email_pagador:
+        try:
+            # AJUSTE: Assuma o nome do campo de e-mail na sua tabela RespostaCampo
+            email_response = RespostaCampo.objects.get(
+                participante=participante,
+                campo__nome_campo__iexact='email' # Busca case-insensitive
+            )
+            email_pagador = email_response.valor
+        except RespostaCampo.DoesNotExist:
+            messages.error(request, "Erro: Não foi possível encontrar o e-mail do participante. Inscrição incompleta.")
+            return redirect('detalhes_participante', participante_id=participante.id)
+    # --- FIM: Lógica de Recuperação de E-mail ---
+
+    # 1. Verifica se o evento tem um valor para pagamento
     if not evento.valor or float(evento.valor) <= 0:
         messages.error(request, "O valor do evento não está definido ou é zero. Não é possível gerar o link de pagamento.")
         return redirect('detalhes_participante', participante_id=participante.id)
 
-    # 1. LÓGICA DE RECUPERAÇÃO DO E-MAIL
-    email_pagador = None
-
-    # Tenta obter o e-mail diretamente do campo do modelo (se existir e estiver preenchido)
-    if hasattr(participante, 'email') and participante.email:
-        email_pagador = participante.email
-    
-    # Se o e-mail ainda não foi encontrado, busca nos campos dinâmicos
-    if not email_pagador:
-        try:
-            # Assume que o nome do campo dinâmico de e-mail é 'E-mail'
-            email_response = RespostaCampo.objects.get(
-                participante=participante,
-                campo__nome_campo='E-mail'
-            )
-            email_pagador = email_response.valor
-        except RespostaCampo.DoesNotExist:
-            # Se não for possível encontrar o e-mail, exibe erro e para
-            messages.error(request, "Erro: Não foi possível encontrar o e-mail do participante. Inscrição incompleta.")
-            return redirect('detalhes_participante', participante_id=participante.id)
-
-    # Fim da lógica de recuperação do e-mail
-
     try:
+        # Configurar o SDK do Mercado Pago
         sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
+        # 2. VERIFICAÇÃO CRÍTICA E OBTENÇÃO DO ID DO RECEBEDOR
+        # Agora o ID deve estar no modelo do criador (User/CustomUser)
+        receiver_id = getattr(evento.criador, 'mp_user_id', None) 
+        
+        if not receiver_id:
+            messages.error(request, "Erro: O criador deste evento não conectou a conta do Mercado Pago (ID não encontrado).")
+            # Recomendação: Adicionar um link para a página de conexão OAuth aqui.
+            return redirect('detalhes_participante', participante_id=participante.id)
+
+        # 3. Dados da preferência de pagamento (com sponsor_id)
         preference_data = {
             "items": [
                 {
@@ -433,39 +447,50 @@ def pagamento_agora(request, participante_id):
                     "quantity": 1,
                     "unit_price": float(evento.valor),
                     "id": participante.id,
-                    "category_id": "services",
+                    "category_id": "services", # Otimização de aprovação
                 }
             ],
+            # URLs de redirecionamento após o pagamento
             "back_urls": {
-                "success": request.build_absolute_uri(f'/eventos/pagamento/sucesso/{participante.id}/'),
-                "pending": request.build_absolute_uri(f'/eventos/pagamento/pendente/{participante.id}/'),
-                "failure": request.build_absolute_uri(f'/eventos/pagamento/falha/{participante.id}/'),
+                "success": request.build_absolute_uri(reverse('pagamento_sucesso', kwargs={'participante_id': participante.id})),
+                "pending": request.build_absolute_uri(reverse('pagamento_pendente', kwargs={'participante_id': participante.id})),
+                "failure": request.build_absolute_uri(reverse('pagamento_falha', kwargs={'participante_id': participante.id})),
             },
-            # USA A VARIÁVEL email_pagador GARANTIDA
+            # Bloco Payer (Otimização de aprovação)
             "payer": { 
                 "email": email_pagador 
             },
+            # Importante: para identificar quem pagou no IPN
             "external_reference": str(participante.id),
+
+            # NOVO CAMPO: Direciona o pagamento para a conta do criador (ID do recebedor)
+            # Este campo é crucial para o Marketplace (Conect)
+            "sponsor_id": str(receiver_id),
+
+            # Garante que o Mercado Pago chame a rota correta de IPN
             "notification_url": request.build_absolute_uri(
                 reverse('mercado_pago_ipn')
             ),
         }
 
+        # Cria a preferência de pagamento na API do Mercado Pago
         preference_response = sdk.preference().create(preference_data)
 
+        # ... (Restante da verificação de erro e redirecionamento)
         if 'response' not in preference_response or 'init_point' not in preference_response['response']:
             error_details = preference_response.get('error', {})
             error_message = error_details.get('message', 'Erro desconhecido da API do Mercado Pago.')
+            # Usar logging aqui é recomendado para erros de API
             raise Exception(f"Erro na criação da preferência: {error_message}")
 
+        # Redireciona para o link de pagamento
         return redirect(preference_response['response']['init_point'])
 
     except Exception as e:
-        # Exibe o erro de forma mais amigável, mas registra o erro real para depuração
         messages.error(request, f"Ocorreu um erro ao gerar o link de pagamento: {e}")
         return redirect('detalhes_participante', participante_id=participante.id)
 
-# Manter o decorador nas views de retorno
+
 @csrf_exempt
 def pagamento_sucesso(request, participante_id):
     participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
@@ -495,63 +520,130 @@ def lista_eventos(request):
     eventos = Evento.objects.all().order_by('-data_inicio')
     return render(request, 'eventos/lista_eventos.html', {'eventos': eventos})
 
-# Coloque esta função no final do seu arquivo eventos/views.py
-
 @csrf_exempt
 def mercado_pago_ipn(request):
     """
     View que recebe as notificações automáticas (IPN) do Mercado Pago.
-    Atualiza o status do participante (pagamento_recebido).
-    Retorna 200 OK em todos os caminhos para evitar reenvio do MP.
     """
-    # 1. Resposta para Testes (GET)
+
+    import json
+    from django.http import HttpResponse
+    import mercadopago
+
     if request.method == 'GET':
-        # Retorna 200 OK para o Mercado Pago testar a URL (como visto no seu screenshot de sucesso)
-        return HttpResponse('IPN URL OK', status=200) 
+        return HttpResponse('IPN URL OK', status=200)
 
-    # 2. Processamento da Notificação (POST)
     if request.method == 'POST':
-        # As notificações geralmente vêm como form data (request.POST) ou query params
-        data = request.POST 
-        topic = data.get('topic') or data.get('type')
-        resource_id = data.get('id')
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            print("📩 IPN RECEBIDO:", body)
 
-        # Processa apenas notificações de pagamento válidas
-        if topic == 'payment' and resource_id:
-            try:
-                sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+            topic = body.get('topic') or body.get('type')
+            resource_id = body.get('id') or body.get('resource')
 
-                # Consulta o status real do pagamento na API
-                # Se a consulta falhar, a exceção será capturada no final.
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+
+            if topic == 'payment' and resource_id:
+                # Buscar pagamento
                 payment_response = sdk.payment().get(resource_id)
                 payment = payment_response.get('response')
+                print("🔍 Dados do pagamento:", payment)
 
-                if payment and payment['status'] == 'approved':
-                    # O external_reference foi definido como participante.id na view pagamento_agora
+                if payment and payment.get('status') == 'approved':
                     participante_id = payment.get('external_reference')
-                    
                     if participante_id:
-                        # Busca o participante pelo ID fornecido no external_reference
-                        # Isso garante que a notificação está ligada ao participante correto.
-                        participante = ParticipanteEvento.objects.get(pk=int(participante_id))
+                        try:
+                            participante = ParticipanteEvento.objects.get(pk=int(participante_id))
+                            if not participante.pagamento_recebido:
+                                participante.pagamento_recebido = True
+                                participante.save()
+                                print(f"✅ Pagamento confirmado para participante {participante_id}")
+                        except ParticipanteEvento.DoesNotExist:
+                            print(f"❌ Participante {participante_id} não encontrado.")
 
-                        if not participante.pagamento_recebido:
-                            participante.pagamento_recebido = True
-                            participante.save()
-                            # Opcional: Adicione aqui uma função de log.
+            elif topic == 'merchant_order' and resource_id:
+                # Buscar merchant_order
+                order_response = sdk.merchant_order().get(resource_id.split("/")[-1])
+                order = order_response.get('response')
+                print("📦 Dados da ordem:", order)
 
-                # 3. CRÍTICO: Retornar 200 OK é o requisito do Mercado Pago.
-                # Se chegarmos aqui, a notificação foi processada ou o status não era 'approved'.
-                return HttpResponse('Notification processed successfully', status=200)
+            return HttpResponse('Notification processed', status=200)
 
-            except ParticipanteEvento.DoesNotExist:
-                # O participante não foi encontrado, mas retorna 200 OK para evitar reenvio do MP
-                return HttpResponse('Participante not found, accepted', status=200) 
-            
-            except Exception as e:
-                # Captura qualquer erro de consulta de API ou SDK e retorna 200 OK para evitar reenvio
-                print(f"Erro ao processar IPN: {e}")
-                return HttpResponse('Error processing notification', status=200)
+        except Exception as e:
+            print(f"❌ Erro ao processar IPN: {e}")
+            return HttpResponse('Error', status=200)
 
-    # 4. Resposta padrão para qualquer requisição inválida ou que não seja POST/GET de teste
     return HttpResponse(status=200)
+
+
+# eventos/views.py
+
+from django.conf import settings
+from django.shortcuts import redirect
+import urllib.parse
+
+def mercado_pago_connect_auth(request):
+    """
+    Inicia o fluxo de autorização OAuth2, redirecionando para o Mercado Pago.
+    """
+    # O URL de autorização do Mercado Pago Connect
+    BASE_AUTH_URL = "https://auth.mercadopago.com.br/oauth/authorize"
+    
+    # Parâmetros necessários
+    params = {
+        'client_id': settings.MP_CLIENT_ID,
+        'response_type': 'code',
+        'platform_id': 'MP', # Tipo de plataforma (Marketplace)
+        'redirect_uri': settings.MP_REDIRECT_URI,
+    }
+    
+    auth_url = f"{BASE_AUTH_URL}?{urllib.parse.urlencode(params)}"
+    
+    return redirect(auth_url)
+
+def mercado_pago_connect_callback(request):
+    """
+    Recebe o código de autorização do Mercado Pago e troca-o pelo user_id.
+    """
+    code = request.GET.get('code')
+    
+    if not code:
+        messages.error(request, "Erro na autorização do Mercado Pago. Código de autorização não recebido.")
+        return redirect('perfil') # Redireciona para o perfil do criador
+        
+    # Endpoint para troca de código por token
+    TOKEN_URL = "https://api.mercadopago.com/oauth/token"
+    
+    payload = {
+        'client_id': settings.MP_CLIENT_ID,
+        'client_secret': settings.MP_CLIENT_SECRET,
+        'code': code,
+        'redirect_uri': settings.MP_REDIRECT_URI,
+        'grant_type': 'authorization_code'
+    }
+    
+    try:
+        response = requests.post(TOKEN_URL, json=payload)
+        response.raise_for_status() # Lança exceção para códigos 4xx/5xx
+        
+        data = response.json()
+        
+        mp_user_id = data.get('user_id')
+        
+        if mp_user_id:
+            # Salvar o user_id no perfil do criador (ASSUMIMOS QUE O CAMPO EXISTE)
+            request.user.mp_user_id = mp_user_id
+            request.user.save()
+            
+            messages.success(request, f"Conta do Mercado Pago conectada com sucesso! Seu User ID: {mp_user_id}")
+            
+            # O access_token retornado também pode ser salvo se for necessário para reembolsos
+            # mp_access_token = data.get('access_token')
+            
+        else:
+            messages.error(request, "Falha ao obter o User ID após a autorização.")
+            
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Erro ao comunicar com a API do Mercado Pago: {e}")
+        
+    return redirect('perfil') # Redireciona para o perfil do criador

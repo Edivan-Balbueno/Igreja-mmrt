@@ -1121,7 +1121,9 @@ https://getbootstrap.com/docs/5.3/components/offcanvas/
  <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
                     Gerenciar Comentários (se houver uma view específica)
 
-settings local
+
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+
 
 from pathlib import Path
 import os
@@ -1130,6 +1132,11 @@ from dotenv import load_dotenv
 load_dotenv() # Carrega as variáveis do .env
 
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
+MP_CLIENT_ID = os.environ.get('MP_CLIENT_ID', '4904084460965448')
+MP_CLIENT_SECRET = os.environ.get('MP_CLIENT_SECRET', 'WqOJKVUb274Ry56KkJH3cF2gw3YlROu2')
+MP_REDIRECT_URI = 'http://127.0.0.1:8000/eventos/perfil/mp/conectar/'
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -1157,8 +1164,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
     'accounts.apps.AccountsConfig',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'widget_tweaks',
     'django_summernote',
     'encontro_com_deus',
+    'eventos',
 ]
 
 MIDDLEWARE = [
@@ -1256,10 +1267,29 @@ LOGOUT_REDIRECT_URL = '/perfil'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# URL Base do seu projeto
+# Use 'http://127.0.0.1:8000' para desenvolvimento local
+# Mude para o seu domínio (ex: 'https://seu-dominio.com') em produção
+BASE_URL = 'http://127.0.0.1:8000'
+
+# Defina o caminho ABSOLUTO para o seu arquivo de logo
+# EX: Assumindo que o logo está em [Seu Projeto]/static/images/logo.png
+QRCODE_LOGO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'logoqrcode.JPEG')
+
 
 -_-_-_-_-_-_-_-_-_-_
   
-setting  servidor
+setting  servidor python
 
 
 from pathlib import Path

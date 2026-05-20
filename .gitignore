@@ -19,3 +19,5 @@ anotacoes
 
 # Environment variables
 .env
+
+settings.py

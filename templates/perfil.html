@@ -31,6 +31,35 @@
 
         <hr>
 
+        {% if user.is_authenticated and can_admin_blog %} 
+            <h3 class="mt-4">Configuração de Pagamento (Mercado Pago Connect)</h3>
+            <div class="card p-3 mb-4">
+                {% if user.mp_user_id %}
+                    <p class="text-success mb-2">
+                        ✅ **Conta Mercado Pago Conectada** com sucesso!
+                    </p>
+                    <p class="mb-3">
+                        **ID do Recebedor:** <code class="bg-light p-1 rounded">{{ user.mp_user_id }}</code>
+                    </p>
+                    <p class="text-muted small">
+                        O seu ID será usado automaticamente para receber os pagamentos dos eventos que criar. Se precisar desvincular ou reconectar, clique no botão abaixo.
+                    </p>
+                    <a href="{% url 'mp_connect_auth' %}" class="btn btn-warning btn-sm mt-2">
+                        Reconectar ou Atualizar Conta
+                    </a>
+                {% else %}
+                    <p class="text-danger mb-3">
+                        ⚠️ **Sua conta não está configurada** para receber pagamentos de eventos. Por favor, conecte o seu Mercado Pago.
+                    </p>
+                    <a href="{% url 'mp_connect_auth' %}" class="btn btn-primary">
+                        Conectar minha Conta do Mercado Pago
+                    </a>
+                {% endif %}
+            </div>
+            
+            <hr>
+            {% endif %}
+        
         {# Bloco para links de controle do blog - Visível SOMENTE para Blog Admins #}
         {# A condição verifica se o usuário está logado E se a variável 'can_admin_blog' é True #}
         {% if user.is_authenticated and can_admin_blog %} {# <-- Alteração aqui #}

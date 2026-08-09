@@ -1,33 +1,48 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv() # Carrega as variáveis do .env
-
-YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
-MP_CLIENT_ID = os.environ.get('MP_CLIENT_ID', '4904084460965448')
-MP_CLIENT_SECRET = os.environ.get('MP_CLIENT_SECRET', 'WqOJKVUb274Ry56KkJH3cF2gw3YlROu2')
-MP_REDIRECT_URI = 'http://127.0.0.1:8000/eventos/perfil/mp/conectar/'
-
+load_dotenv()  # Carrega as variáveis do arquivo .env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==============================================================================
+# CONTROLE DE AMBIENTE (DESENVOLVIMENTO VS PRODUÇÃO)
+# ==============================================================================
+IS_PRODUCTION = os.getenv('DJANGO_ENV') == 'production'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+if IS_PRODUCTION:
+  # Configurações de Produção (PythonAnywhere)
+  DEBUG = False
+  ALLOWED_HOSTS = ['balbuen.pythonanywhere.com']
+  BASE_URL = 'https://balbuen.pythonanywhere.com'
+  MP_REDIRECT_URI = (
+      'https://balbuen.pythonanywhere.com/eventos/perfil/mp/callback/'
+  )
+else:
+  # Configurações de Desenvolvimento Local
+  DEBUG = True
+  ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.100.194']
+  BASE_URL = 'http://127.0.0.1:8000'
+  MP_REDIRECT_URI = os.getenv(
+      'MP_REDIRECT_URI', 'http://127.0.0.1:8000/eventos/perfil/mp/callback/'
+  )
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tf0gr--97sr5#g2r64fi*ij&6poik7za#^mqsj9zm444g9++ru'
+# ==============================================================================
+# CHAVES E INTEGRAÇÕES
+# ==============================================================================
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-tf0gr--97sr5#g2r64fi*ij&6poik7za#^mqsj9zm444g9++ru',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
+MP_CLIENT_ID = os.getenv('MP_CLIENT_ID', '4904084460965448')
+MP_CLIENT_SECRET = os.getenv('MP_CLIENT_SECRET', 'WqOJKVUb274Ry56KkJH3cF2gw3YlROu2')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +56,6 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'widget_tweaks',
     'django_summernote',
-    'encontro_com_deus',
     'eventos',
 ]
 
@@ -60,8 +74,8 @@ ROOT_URLCONF = 'webapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], # <-- Adicione esta linha!
-        'APP_DIRS': True, # Mantenha esta linha também, para templates de apps
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -75,10 +89,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'webapp.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -86,62 +97,52 @@ DATABASES = {
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.MinimumLengthValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.CommonPasswordValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.NumericPasswordValidator'
+        ),
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# Static & Media files
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-STATIC_ROOT = os.path.join(BASE_DIR, "public")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, 'public')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/index'
 LOGOUT_REDIRECT_URL = '/perfil'
-
 AUTH_USER_MODEL = 'accounts.CustomUser'
-
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
+# Configurações de E-mail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -150,11 +151,4 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-# URL Base do seu projeto
-# Use 'http://127.0.0.1:8000' para desenvolvimento local
-# Mude para o seu domínio (ex: 'https://seu-dominio.com') em produção
-BASE_URL = 'http://127.0.0.1:8000'
-
-# Defina o caminho ABSOLUTO para o seu arquivo de logo
-# EX: Assumindo que o logo está em [Seu Projeto]/static/images/logo.png
 QRCODE_LOGO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'logoqrcode.JPEG')

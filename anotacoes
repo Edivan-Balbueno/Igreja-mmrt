@@ -1621,3 +1621,54 @@ BASE_URL = 'http://127.0.0.1:8000'
 # Defina o caminho ABSOLUTO para o seu arquivo de logo
 # EX: Assumindo que o logo está em [Seu Projeto]/static/images/logo.png
 QRCODE_LOGO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'logoqrcode.JPEG')
+
+
+
+# Configurações youtube
+YOUTUBE_API_KEY=AIzaSyAJxjMTO2RZKPWa3hNv4gTV8O5Fuu_2NT4
+
+# Configurações mercado pago
+MERCADO_PAGO_ACCESS_TOKEN=APP_USR-4051926911359736-092422-e257af4c6bdce9a652b4ea76c6ad2b75-2707535331
+MP_CLIENT_ID=4904084460965448
+MP_CLIENT_SECRET=WqOJKVUb274Ry56KkJH3cF2gw3YlROu2
+MP_REDIRECT_URI=https://balbuen.pythonanywhere.com/perfil/mp/callback/
+
+# Configurações de e-mail para produção
+EMAIL_HOST_USER=edivanbalbueno@gmail.com
+EMAIL_HOST_PASSWORD=maqx kizg dyah wand
+DEFAULT_FROM_EMAIL=edivanbalbueno@gmail.com
+
+
+
+import os
+import sys
+
+os.environ['YOUTUBE_API_KEY'] = 'AIzaSyAJxjMTO2RZKPWa3hNv4gTV8O5Fuu_2NT4'
+os.environ['MERCADO_PAGO_ACCESS_TOKEN'] = 'APP_USR-4904084460965448-092422-6251ec524de45f5363e0b525192a6818-394093867'
+
+
+os.environ['EMAIL_HOST_USER'] = 'edivanbalbueno@gmail.com'
+os.environ['EMAIL_HOST_PASSWORD'] = 'ilhf xitt qsxp hmjz'
+os.environ['DEFAULT_FROM_EMAIL'] = 'edivanbalbueno@gmail.com'
+
+# Caminho para o seu projeto Django
+# Este é o diretório raiz do seu repositório clonado no PythonAnywhere
+path = '/home/Balbuen/Igreja-mmrt'
+if path not in sys.path:
+    sys.path.append(path)
+
+# Caminho para o diretório que contém seu arquivo settings.py (o nome da sua pasta principal do Django)
+# Ex: se o seu settings.py está em /home/Balbuen/Igreja-mmrt/webapp/settings.py, aqui seria 'webapp'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'webapp.settings'
+
+
+# Ativa o virtualenv
+# O mesmo caminho que você criou com mkvirtualenv
+VIRTUALENV_PATH = '/home/Balbuen/.virtualenvs/venv_py310' # <--- MUDE AQUI para o seu venv
+if sys.version_info >= (3, 0):
+    exec(open(os.path.join(VIRTUALENV_PATH, 'bin', 'activate_this.py')).read(), dict(__file__=os.path.join(VIRTUALENV_PATH, 'bin', 'activate_this.py')))
+else:
+    execfile(os.path.join(VIRTUALENV_PATH, 'bin', 'activate_this.py'), dict(__file__=os.path.join(VIRTUALENV_PATH, 'bin', 'activate_this.py')))
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()

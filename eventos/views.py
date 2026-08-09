@@ -1,5 +1,8 @@
 # eventos/views.py
 
+from django.conf import settings
+from django.shortcuts import redirect
+import urllib.parse
 import mimetypes
 import mercadopago
 from django.conf import settings
@@ -576,74 +579,78 @@ def mercado_pago_ipn(request):
     return HttpResponse(status=200)
 
 
-# eventos/views.py
-
-from django.conf import settings
-from django.shortcuts import redirect
-import urllib.parse
-
 def mercado_pago_connect_auth(request):
-    """
-    Inicia o fluxo de autorização OAuth2, redirecionando para o Mercado Pago.
-    """
-    # O URL de autorização do Mercado Pago Connect
-    BASE_AUTH_URL = "https://auth.mercadopago.com.br/oauth/authorize"
-    
-    # Parâmetros necessários
-    params = {
-        'client_id': settings.MP_CLIENT_ID,
-        'response_type': 'code',
-        'platform_id': 'MP', # Tipo de plataforma (Marketplace)
-        'redirect_uri': settings.MP_REDIRECT_URI,
-    }
-    
-    auth_url = f"{BASE_AUTH_URL}?{urllib.parse.urlencode(params)}"
-    
-    return redirect(auth_url)
+  """Inicia o fluxo de autorização OAuth2, redirecionando para o Mercado Pago."""
+  # 1. URL atualizada de autorização
+  BASE_AUTH_URL = "https://auth.mercadopago.com.br/authorization"
+
+  # 2. Parâmetros necessários (removido 'platform_id' que quebrava a requisição)
+  params = {
+      "client_id": settings.MP_CLIENT_ID,
+      "response_type": "code",
+      "redirect_uri": settings.MP_REDIRECT_URI,
+  }
+
+  auth_url = f"{BASE_AUTH_URL}?{urllib.parse.urlencode(params)}"
+
+  return redirect(auth_url)
+
 
 def mercado_pago_connect_callback(request):
-    """
-    Recebe o código de autorização do Mercado Pago e troca-o pelo user_id.
-    """
-    code = request.GET.get('code')
-    
-    if not code:
-        messages.error(request, "Erro na autorização do Mercado Pago. Código de autorização não recebido.")
-        return redirect('perfil') # Redireciona para o perfil do criador
-        
-    # Endpoint para troca de código por token
-    TOKEN_URL = "https://api.mercadopago.com/oauth/token"
-    
-    payload = {
-        'client_id': settings.MP_CLIENT_ID,
-        'client_secret': settings.MP_CLIENT_SECRET,
-        'code': code,
-        'redirect_uri': settings.MP_REDIRECT_URI,
-        'grant_type': 'authorization_code'
-    }
-    
-    try:
-        response = requests.post(TOKEN_URL, json=payload)
-        response.raise_for_status() # Lança exceção para códigos 4xx/5xx
-        
-        data = response.json()
-        
-        mp_user_id = data.get('user_id')
-        
-        if mp_user_id:
-            # Salvar o user_id no perfil do criador (ASSUMIMOS QUE O CAMPO EXISTE)
-            request.user.mp_user_id = mp_user_id
-            request.user.save()
-            
-            messages.success(request, f"Conta do Mercado Pago conectada com sucesso! Seu User ID: {mp_user_id}")
-            
-            # O access_token retornado também pode ser salvo se for necessário para reembolsos
-            # mp_access_token = data.get('access_token')
-            
-        else:
-            messages.error(request, "Falha ao obter o User ID após a autorização.")
-            
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f"Erro ao comunicar com a API do Mercado Pago: {e}")
-        
-    return redirect('perfil') # Redireciona para o perfil do criador
+  """Recebe o código de autorização do Mercado Pago e troca-o pelo user_id."""
+  code = request.GET.get("code")
+
+  if not code:
+    messages.error(
+        request,
+        "Erro na autorização do Mercado Pago. Código de autorização não"
+        " recebido.",
+    )
+    return redirect("perfil")
+
+  TOKEN_URL = "https://api.mercadopago.com/oauth/token"
+
+  # O Mercado Pago exige o envio no formato application/x-www-form-urlencoded
+  payload = {
+      "client_id": settings.MP_CLIENT_ID,
+      "client_secret": settings.MP_CLIENT_SECRET,
+      "code": code,
+      "redirect_uri": settings.MP_REDIRECT_URI,
+      "grant_type": "authorization_code",
+  }
+
+  headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+  try:
+    # Alterado 'json=payload' para 'data=payload'
+    response = requests.post(
+        TOKEN_URL, data=payload, headers=headers, timeout=10
+    )
+    response.raise_for_status()
+
+    data = response.json()
+    mp_user_id = data.get("user_id")
+
+    if mp_user_id:
+      request.user.mp_user_id = mp_user_id
+
+      # Salvar também o access_token e refresh_token se precisar criar cobranças em nome dele
+      # request.user.mp_access_token = data.get('access_token')
+      # request.user.mp_refresh_token = data.get('refresh_token')
+
+      request.user.save()
+
+      messages.success(
+          request,
+          "Conta do Mercado Pago conectada com sucesso! Seu User ID:"
+          f" {mp_user_id}",
+      )
+    else:
+      messages.error(request, "Falha ao obter o User ID após a autorização.")
+
+  except requests.exceptions.RequestException as e:
+    messages.error(
+        request, f"Erro ao comunicar com a API do Mercado Pago: {e}"
+    )
+
+  return redirect("perfil")

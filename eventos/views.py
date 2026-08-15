@@ -814,3 +814,31 @@ def mercado_pago_connect_callback(request):
     )
 
   return redirect('perfil')
+
+
+def buscar_participante_ajax(request, evento_id):
+    nome_query = request.GET.get('nome', '').strip()
+    
+    if not nome_query:
+        return JsonResponse({'participantes': []})
+
+    # Filtra as respostas dinâmicas pelo nome digitado
+    respostas = RespostaCampo.objects.filter(
+        participante__evento_id=evento_id,
+        valor__icontains=nome_query
+    ).select_related('participante')
+
+    participantes_dict = {}
+    for resp in respostas:
+        part = resp.participante
+        if part.id not in participantes_dict:
+            # Verifica com segurança se o participante está pago
+            is_pago = getattr(part, 'pago', None) or getattr(part, 'pagamento_confirmado', False) or (getattr(part, 'status_pagamento', '') == 'Pago')
+            
+            participantes_dict[part.id] = {
+                'id': part.id,
+                'nome': resp.valor,
+                'status_pagamento': 'Pago' if is_pago else 'Pendente'
+            }
+
+    return JsonResponse({'participantes': list(participantes_dict.values())})

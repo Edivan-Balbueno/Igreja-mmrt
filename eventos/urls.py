@@ -17,6 +17,7 @@ urlpatterns = [
     path('participantes/<int:evento_id>/', views.lista_participantes, name='lista_participantes'),
     path('participante/editar/<int:participante_id>/', views.editar_participante, name='editar_participante'),
     path('participante/detalhes/<int:participante_id>/', views.detalhes_participante, name='detalhes_participante'),
+    path('participante/<int:evento_id>/buscar-participante/', views.buscar_participante_ajax, name='buscar_participante_ajax'),
     path('pagamento/agora/<int:participante_id>/', views.pagamento_agora, name='pagamento_agora'),
     path('pagamento/sucesso/<int:participante_id>/', views.pagamento_sucesso, name='pagamento_sucesso'),
     path('pagamento/pendente/<int:participante_id>/', views.pagamento_pendente, name='pagamento_pendente'),

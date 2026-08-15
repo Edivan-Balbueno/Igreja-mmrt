@@ -1,0 +1,38 @@
+/* static/css/base.css (ou mundokids.css) */
+
+#mundokids-background {
+    background-image: url("{% static 'images/criancas.jpeg' %}"); /* Caminho da imagem de fundo */
+    background-size: cover; /* Faz a imagem cobrir toda a área da div */
+    background-position: center center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* Evita que a imagem se repita */
+    background-attachment: fixed; /* Fixa a imagem na viewport, mesmo que o conteúdo da div role */
+    /* Adicione qualquer outra estilização necessária para o conteúdo dentro desta div, como padding */
+    padding-top: 20px; /* Exemplo: Adiciona um pouco de espaço no topo */
+    padding-bottom: 20px; /* Exemplo: Adiciona um pouco de espaço na parte inferior */
+    /* Garante que o conteúdo role sobre o fundo fixo se for maior que a tela */
+    overflow-y: auto; 
+}
+
+/* Opcional: Ajuste ou remova este estilo se ele causa conflito ou se não for mais necessário */
+/* .background-image {
+    --bg-image: url("/static/images/criancas.jpeg");
+    --bg-image-opacity: .25;
+
+    display: grid;
+    place-content: center;
+    text-align: center;
+    min-height: 200px;
+    /* position: relative;
+    isolation: isolate; *
+} */
+/* .background-image::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    opacity: .4;
+    
+    background-image: var(--bg-image);
+    background-repeat: no-repeat;
+    height: 150vh;
+} */

@@ -560,118 +560,115 @@ def detalhes_participante(request, participante_id):
       {'participante': participante, 'respostas': respostas},
   )
 
-
 # ==============================================================================
 # INTEGRACÃO MERCADO PAGO E PAGAMENTOS
 # ==============================================================================
 def pagamento_agora(request, participante_id):
-  participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
-  evento = participante.evento
+    participante = get_object_or_404(ParticipanteEvento, pk=participante_id)
+    evento = participante.evento
 
-  # Recuperação de e-mail flexível
-  email_pagador = getattr(participante, 'email', None)
+    # Recuperação de e-mail flexível
+    email_pagador = getattr(participante, 'email', None)
 
-  if not email_pagador:
-      # Busca por 'email' ou 'e-mail' sem lançar exceção DoesNotExist
-      resposta_email = (
-          RespostaCampo.objects.filter(participante=participante)
-          .filter(
-              Q(campo__nome_campo__iexact='email')
-              | Q(campo__nome_campo__iexact='e-mail')
-          )
-          .first()
-      )
+    if not email_pagador:
+        resposta_email = (
+            RespostaCampo.objects.filter(participante=participante)
+            .filter(
+                Q(campo__nome_campo__iexact='email')
+                | Q(campo__nome_campo__iexact='e-mail')
+            )
+            .first()
+        )
 
-      if resposta_email and resposta_email.valor:
-          email_pagador = resposta_email.valor.strip()
+        if resposta_email and resposta_email.valor:
+            email_pagador = resposta_email.valor.strip()
 
-  # Fallback: se não encontrar e-mail no participante, usa um e-mail válido para a API não rejeitar
-  if not email_pagador:
-      email_pagador = (
-          request.user.email
-          if (hasattr(request, 'user') and request.user.email)
-          else 'participante@email.com'
-      )
+    # Fallback de e-mail
+    if not email_pagador:
+        email_pagador = (
+            request.user.email
+            if (hasattr(request, 'user') and request.user.email)
+            else 'participante@email.com'
+        )
 
-  if not evento.valor or float(evento.valor) <= 0:
-    messages.error(request, 'O valor do evento não é válido para pagamento.')
-    return redirect('detalhes_participante', participante_id=participante.id)
+    if not evento.valor or float(evento.valor) <= 0:
+        messages.error(request, 'O valor do evento não é válido para pagamento.')
+        return redirect('detalhes_participante', participante_id=participante.id)
 
-  try:
-    sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-    receiver_id = getattr(evento.criador, 'mp_user_id', None)
+    try:
+        criador = evento.criador
+        user_access_token = getattr(criador, 'mp_access_token', None)
+        receiver_id = getattr(criador, 'mp_user_id', None)
 
-    if not receiver_id:
-      messages.error(
-          request,
-          'Erro: O criador deste evento ainda não conectou a conta do Mercado'
-          ' Pago.',
-      )
-      return redirect(
-          'detalhes_participante', participante_id=participante.id
-      )
+        # Se a conta do criador possui Access Token próprio (OAuth), usa para receber 100% diretamente
+        if user_access_token:
+            sdk = mercadopago.SDK(user_access_token)
+            use_sponsor = False
+        # Caso contrário, verifica se tem o mp_user_id registrado para fallback via token global
+        elif receiver_id:
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+            use_sponsor = True
+        else:
+            messages.error(
+                request,
+                'Erro: O criador deste evento ainda não conectou a conta do Mercado Pago.',
+            )
+            return redirect('detalhes_participante', participante_id=participante.id)
 
-    preference_data = {
-        'items': [{
-            'title': f'Inscrição - {evento.titulo}',
-            'quantity': 1,
-            'unit_price': float(evento.valor),
-            'id': participante.id,
-            'category_id': 'services',
-        }],
-        'back_urls': {
-            'success': request.build_absolute_uri(
-                reverse(
-                    'pagamento_sucesso',
-                    kwargs={'participante_id': participante.id},
-                )
+        preference_data = {
+            'items': [{
+                'title': f'Inscrição - {evento.titulo}',
+                'quantity': 1,
+                'unit_price': float(evento.valor),
+                'id': participante.id,
+                'category_id': 'services',
+            }],
+            'back_urls': {
+                'success': request.build_absolute_uri(
+                    reverse('pagamento_sucesso', kwargs={'participante_id': participante.id})
+                ),
+                'pending': request.build_absolute_uri(
+                    reverse('pagamento_pendente', kwargs={'participante_id': participante.id})
+                ),
+                'failure': request.build_absolute_uri(
+                    reverse('pagamento_falha', kwargs={'participante_id': participante.id})
+                ),
+            },
+            'payer': {'email': email_pagador},
+            'external_reference': str(participante.id),
+            'notification_url': request.build_absolute_uri(
+                reverse('mercado_pago_ipn')
             ),
-            'pending': request.build_absolute_uri(
-                reverse(
-                    'pagamento_pendente',
-                    kwargs={'participante_id': participante.id},
-                )
-            ),
-            'failure': request.build_absolute_uri(
-                reverse(
-                    'pagamento_falha',
-                    kwargs={'participante_id': participante.id},
-                )
-            ),
-        },
-        'payer': {'email': email_pagador},
-        'external_reference': str(participante.id),
-        'sponsor_id': int(receiver_id),
-        'notification_url': request.build_absolute_uri(
-            reverse('mercado_pago_ipn')
-        ),
-    }
+        }
 
-    preference_response = sdk.preference().create(preference_data)
+        # Adiciona o sponsor_id apenas no cenário de fallback sem token individual
+        if use_sponsor and receiver_id:
+            preference_data['sponsor_id'] = int(receiver_id)
 
-    # Captura detalhada do retorno da API
-    if (
-        'response' not in preference_response
-        or 'init_point' not in preference_response['response']
-    ):
-      import sys
+        preference_response = sdk.preference().create(preference_data)
 
-      # Imprime os detalhes exatos que a API do Mercado Pago devolveu no error log
-      print('RESPOSTA COMPLETA MP:', preference_response, file=sys.stderr)
+        # Captura detalhada do retorno da API
+        if (
+            'response' not in preference_response
+            or 'init_point' not in preference_response['response']
+        ):
+            import sys
 
-      error_details = preference_response.get('response', {})
-      error_msg = error_details.get(
-          'message', preference_response.get('error', 'Erro desconhecido.')
-      )
-      raise Exception(f'Erro MP ({preference_response.get("status")}): {error_msg}')
+            print('RESPOSTA COMPLETA MP:', preference_response, file=sys.stderr)
 
-    return redirect(preference_response['response']['init_point'])
+            error_details = preference_response.get('response', {})
+            error_msg = error_details.get(
+                'message', preference_response.get('error', 'Erro desconhecido.')
+            )
+            raise Exception(f'Erro MP ({preference_response.get("status")}): {error_msg}')
 
-  except Exception as e:
-    messages.error(
-        request, f'Ocorreu um erro ao gerar o link de pagamento: {e}'
-    )
-    return redirect('detalhes_participante', participante_id=participante.id)
+        return redirect(preference_response['response']['init_point'])
+
+    except Exception as e:
+        messages.error(
+            request, f'Ocorreu um erro ao gerar o link de pagamento: {e}'
+        )
+        return redirect('detalhes_participante', participante_id=participante.id)
 
 
 @csrf_exempt

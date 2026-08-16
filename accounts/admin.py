@@ -48,7 +48,7 @@ class UserAdmin(admin.ModelAdmin):
       (
           _('Mercado Pago'),
           {
-              'fields': ('mp_user_id',),
+              'fields': ('mp_user_id', 'mp_access_token'),  # <--- Incluído aqui
           },
       ),
       (
@@ -84,6 +84,7 @@ class UserAdmin(admin.ModelAdmin):
       'username',
       'email',
       'mp_user_id',
+      'mp_access_token',  # <--- Incluído aqui
       'first_name',
       'last_name',
       'is_active',
@@ -104,6 +105,7 @@ class UserAdmin(admin.ModelAdmin):
       'user_permissions',
   )
 
+  
   def get_fieldsets(self, request, obj=None):
     if not obj:
       return self.add_fieldsets

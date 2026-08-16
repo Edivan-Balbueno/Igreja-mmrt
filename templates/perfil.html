@@ -20,7 +20,6 @@
             {% if user.email %}
                 <li class="list-group-item">Email: <strong>{{ user.email }}</strong></li>
             {% endif %}
-            {# Se o seu CustomUser tiver campos adicionais como 'data_nascimento' ou 'cpf', você pode exibi-los aqui: #}
             {% if user.data_nascimento %}
                 <li class="list-group-item">Data de Nascimento: <strong>{{ user.data_nascimento|date:"d/m/Y" }}</strong></li>
             {% endif %}
@@ -33,36 +32,44 @@
 
         {% if user.is_authenticated and can_admin_blog %} 
             <h3 class="mt-4">Configuração de Pagamento (Mercado Pago Connect)</h3>
-            <div class="card p-3 mb-4">
-                {% if user.mp_user_id %}
+            <div class="card p-3 mb-4 shadow-sm">
+                {% if user.mp_access_token or user.mp_user_id %}
                     <p class="text-success mb-2">
-                        ✅ **Conta Mercado Pago Conectada** com sucesso!
+                        ✅ <strong>Conta Mercado Pago Conectada</strong> com sucesso!
                     </p>
-                    <p class="mb-3">
-                        **ID do Recebedor:** <code class="bg-light p-1 rounded">{{ user.mp_user_id }}</code>
-                    </p>
+                    <div class="mb-2">
+                        <label class="form-label text-muted mb-0"><strong>ID do Recebedor (User ID):</strong></label>
+                        <div><code class="bg-light p-1 rounded">{{ user.mp_user_id|default:"Não informado" }}</code></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted mb-0"><strong>Access Token (Individual):</strong></label>
+                        <input type="password" class="form-control form-control-sm" value="{{ user.mp_access_token|default:'' }}" readonly>
+                    </div>
                     <p class="text-muted small">
-                        O seu ID será usado automaticamente para receber os pagamentos dos eventos que criar. Se precisar desvincular ou reconectar, clique no botão abaixo.
+                        O seu Access Token será usado para receber 100% dos pagamentos dos eventos que criar diretamente na sua conta do Mercado Pago.
                     </p>
-                    <a href="{% url 'mp_connect_auth' %}" class="btn btn-warning btn-sm mt-2">
-                        Reconectar ou Atualizar Conta
-                    </a>
+                    <div>
+                        <a href="{% url 'mp_connect_auth' %}" class="btn btn-warning btn-sm">
+                            Reconectar ou Atualizar Conta
+                        </a>
+                    </div>
                 {% else %}
                     <p class="text-danger mb-3">
-                        ⚠️ **Sua conta não está configurada** para receber pagamentos de eventos. Por favor, conecte o seu Mercado Pago.
+                        ⚠️ <strong>Sua conta não está configurada</strong> para receber pagamentos de eventos. Por favor, conecte o seu Mercado Pago.
                     </p>
-                    <a href="{% url 'mp_connect_auth' %}" class="btn btn-primary">
-                        Conectar minha Conta do Mercado Pago
-                    </a>
+                    <div>
+                        <a href="{% url 'mp_connect_auth' %}" class="btn btn-primary">
+                            Conectar minha Conta do Mercado Pago
+                        </a>
+                    </div>
                 {% endif %}
             </div>
             
             <hr>
-            {% endif %}
+        {% endif %}
         
-        {# Bloco para links de controle do blog - Visível SOMENTE para Blog Admins #}
-        {# A condição verifica se o usuário está logado E se a variável 'can_admin_blog' é True #}
-        {% if user.is_authenticated and can_admin_blog %} {# <-- Alteração aqui #}
+        {# Bloco de Controle do Blog e Eventos #}
+        {% if user.is_authenticated and can_admin_blog %}
             <h3 class="mt-4">Controle do Blog e Comentários</h3>
             <div class="list-group">
                 <a href="{% url 'blog_admin_dashboard' %}" class="list-group-item list-group-item-action">
@@ -71,12 +78,11 @@
                 <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
                     Gerenciar Comentários (se houver uma view específica)
                 </a>
-                {# Link para gerir imagens do carrossel #}
                 <a href="{% url 'carousel_image_list' %}" class="list-group-item list-group-item-action">
                     Gerir Imagens do Carrossel
                 </a>
             </div>    
-            <h3 class="mt-4">Controle do Eventos</h3>
+            <h3 class="mt-4">Controle dos Eventos</h3>
             <div class="list-group">
                 <a href="{% url 'criar_evento' %}" class="list-group-item list-group-item-action">
                     Gerenciar Eventos
@@ -89,7 +95,7 @@
 
         <hr>
 
-        {# Outras informações ou ações para todos os utilizadores autenticados #}
+        {# Ações gerais para todos os usuários logados #}
         <h3 class="mt-4">Outras Ações</h3>
         <p><a href="{% url 'password_change' %}" class="btn btn-secondary me-2">Alterar Palavra-passe</a></p>
         <p><a href="{% url 'logout' %}" class="btn btn-danger">Sair da Conta</a></p>

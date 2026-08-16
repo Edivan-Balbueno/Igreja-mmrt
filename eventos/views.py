@@ -620,7 +620,7 @@ def pagamento_agora(request, participante_id):
                 'title': f'Inscrição - {evento.titulo}',
                 'quantity': 1,
                 'unit_price': float(evento.valor),
-                'id': participante.id,
+                'id': int(participante.id) if str(participante.id).isdigit() else 1,
                 'category_id': 'services',
             }],
             'back_urls': {

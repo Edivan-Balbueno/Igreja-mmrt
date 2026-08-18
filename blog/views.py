@@ -12,6 +12,7 @@ from django.shortcuts import redirect # redirect adicionado para facilitar redir
 from googleapiclient.discovery import build # <--- Nova importação
 from django.conf import settings # <--- Nova importação para acessar a chave de API
 from googleapiclient.errors import HttpError # Importa para tratar erros específicos da API
+from eventos.models import Evento, ParticipanteEvento
 
 
 # Define uma view para comment.
@@ -200,15 +201,25 @@ def home(request):
 
 @login_required
 def perfil(request):
-    # Verifica se o usuário tem a permissão para gerenciar posts (ou qualquer permissão de admin do blog)
-    # Assumindo que a permissão 'blog.change_postmmrt' é a que define um "admin do blog"
-    can_admin_blog = request.user.has_perm('blog.change_postmmrt')
+  can_admin_blog = request.user.has_perm('blog.change_postmmrt')
 
-    context = {
-        'titulo': 'Meu Perfil',
-        'can_admin_blog': can_admin_blog, # Passa a permissão como um booleano para o template
-    }
-    return render(request, 'perfil.html', context)
+  # Eventos que o usuário criou (se for administrador)
+  meus_eventos = Evento.objects.filter(criador=request.user).order_by(
+      '-created_at'
+  )
+
+  # Inscrições do usuário logado (filtra pelo e-mail do usuário no formulário de inscrição)
+  minhas_inscricoes = ParticipanteEvento.objects.filter(
+      respostas__valor__iexact=request.user.email
+  ).distinct()
+
+  context = {
+      'titulo': 'Meu Perfil',
+      'can_admin_blog': can_admin_blog,
+      'meus_eventos': meus_eventos,
+      'minhas_inscricoes': minhas_inscricoes,  # Adicionado ao contexto
+  }
+  return render(request, 'perfil.html', context)
 
 
 # Definir uma view baseada em função.

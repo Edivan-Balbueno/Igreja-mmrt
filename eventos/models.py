@@ -162,6 +162,14 @@ class ParticipanteEvento(models.Model):
   evento = models.ForeignKey(
       Evento, on_delete=models.CASCADE, related_name='participantes'
   )
+  usuario = models.ForeignKey(
+      settings.AUTH_USER_MODEL,
+      on_delete=models.SET_NULL,
+      null=True,
+      blank=True,
+      related_name='inscricoes_eventos',
+      verbose_name='Usuário Cadastrado',
+  )
   nome_completo = models.CharField(max_length=255, blank=True, null=True)
   trabalha_no_evento = models.BooleanField(default=False)
   status_pagamento = models.CharField(
@@ -173,7 +181,12 @@ class ParticipanteEvento(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):
-    return f'Participante do evento {self.evento.titulo}'
+    nome = self.nome_completo or (
+        self.usuario.get_full_name()
+        if self.usuario
+        else f'Participante #{self.id}'
+    )
+    return f'{nome} - {self.evento.titulo}'
 
 
 class RespostaCampo(models.Model):

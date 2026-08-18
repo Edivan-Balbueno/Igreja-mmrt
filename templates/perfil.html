@@ -11,8 +11,9 @@
         <p>Bem-vindo, <strong>{{ user.username }}</strong>!</p>
         <hr>
 
+        <!-- Seção 1: Suas Informações -->
         <h3>Suas Informações</h3>
-        <ul class="list-group list-group-flush">
+        <ul class="list-group list-group-flush mb-4">
             <li class="list-group-item">Nome de Usuário: <strong>{{ user.username }}</strong></li>
             {% if user.first_name or user.last_name %}
                 <li class="list-group-item">Nome Completo: <strong>{{ user.first_name }} {{ user.last_name }}</strong></li>
@@ -30,6 +31,44 @@
 
         <hr>
 
+        <!-- Seção 2: Minhas Inscrições em Eventos (Visível para todos os usuários logados) -->
+        <h3 class="mt-4">Minhas Inscrições em Eventos</h3>
+        {% if minhas_inscricoes %}
+            <div class="list-group mb-4">
+                {% for participante in minhas_inscricoes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <strong>{{ participante.evento.titulo }}</strong><br>
+                            <small class="text-muted">
+                                Data: {{ participante.evento.data_inicio }} 
+                                {% if participante.evento.data_fim %}a {{ participante.evento.data_fim }}{% endif %}
+                            </small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 my-1">
+                            {# Status do Pagamento #}
+                            {% if participante.pago or participante.pagamento_confirmado %}
+                                <span class="badge bg-success">Pago</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pendente</span>
+                            {% endif %}
+
+                            {# Botão Ver Detalhes / Pagar #}
+                            <a href="{% url 'detalhes_participante' participante.id %}" class="btn btn-sm btn-outline-primary">
+                                Ver Detalhes / Pagar
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-light border mb-4">
+                Você ainda não se inscreveu em nenhum evento.
+            </div>
+        {% endif %}
+
+        <hr>
+
+        <!-- Seção 3: Painel de Controle (Visível apenas para Administradores do Blog/Eventos) -->
         {% if user.is_authenticated and can_admin_blog %} 
             <h3 class="mt-4">Configuração de Pagamento (Mercado Pago Connect)</h3>
             <div class="card p-3 mb-4 shadow-sm">
@@ -65,37 +104,65 @@
                 {% endif %}
             </div>
             
-            <hr>
-        {% endif %}
-        
-        {# Bloco de Controle do Blog e Eventos #}
-        {% if user.is_authenticated and can_admin_blog %}
             <h3 class="mt-4">Controle do Blog e Comentários</h3>
-            <div class="list-group">
+            <div class="list-group mb-4">
                 <a href="{% url 'blog_admin_dashboard' %}" class="list-group-item list-group-item-action">
                     Aceder ao Painel de Administração do Blog
                 </a>
                 <a href="{% url 'manage_comments' %}" class="list-group-item list-group-item-action">
-                    Gerenciar Comentários (se houver uma view específica)
+                    Gerenciar Comentários
                 </a>
                 <a href="{% url 'carousel_image_list' %}" class="list-group-item list-group-item-action">
                     Gerir Imagens do Carrossel
                 </a>
             </div>    
+
             <h3 class="mt-4">Controle dos Eventos</h3>
-            <div class="list-group">
-                <a href="{% url 'criar_evento' %}" class="list-group-item list-group-item-action">
-                    Gerenciar Eventos
+            <div class="list-group mb-3">
+                <a href="{% url 'criar_evento' %}" class="list-group-item list-group-item-action fw-bold text-primary">
+                    + Criar Novo Evento / Gerenciar
                 </a>
             </div>
+
+            <!-- Lista de Eventos Criados pelo Usuário -->
+            {% if meus_eventos %}
+                <h5 class="mt-3 text-secondary">Meus Eventos Criados:</h5>
+                <div class="list-group mb-3">
+                    {% for evento in meus_eventos %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <span class="fw-bold my-1">{{ evento.titulo }}</span>
+                            <div class="d-flex gap-2 my-1">
+                                {# Botão Azul - Gestão do Evento #}
+                                {% if evento.slug %}
+                                    <a href="{% url 'gerenciar_evento' evento.slug %}" class="btn btn-sm btn-primary">
+                                        Mostrar
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'gerenciar_evento' evento.id %}" class="btn btn-sm btn-primary">
+                                        Mostrar
+                                    </a>
+                                {% endif %}
+
+                                {# Botão Verde - Participantes #}
+                                <a href="{% url 'lista_participantes' evento.id %}" class="btn btn-sm btn-success">
+                                    Participantes
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted small">Você ainda não criou nenhum evento.</p>
+            {% endif %}
+
             <p class="mt-2 text-muted">Você possui permissões de administrador do blog.</p>
+            <hr>
         {% else %}
-            <p class="mt-4">Você não possui permissões de administrador do blog para aceder a controlos adicionais.</p>
+            <p class="text-muted small">Você não possui permissões de administrador para gerenciar eventos ou criar conteúdos.</p>
+            <hr>
         {% endif %}
 
-        <hr>
-
-        {# Ações gerais para todos os usuários logados #}
+        <!-- Seção 4: Outras Ações -->
         <h3 class="mt-4">Outras Ações</h3>
         <p><a href="{% url 'password_change' %}" class="btn btn-secondary me-2">Alterar Palavra-passe</a></p>
         <p><a href="{% url 'logout' %}" class="btn btn-danger">Sair da Conta</a></p>

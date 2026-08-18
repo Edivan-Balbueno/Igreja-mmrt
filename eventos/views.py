@@ -374,7 +374,12 @@ def cadastro_participante_dinamico(request, evento_id):
   if request.method == 'POST':
     form = CadastroParticipanteForm(campos_ativos, request.POST)
     if form.is_valid():
-      participante = ParticipanteEvento.objects.create(evento=evento)
+      # Associa o usuário logado se ele estiver autenticado
+      usuario_logado = request.user if request.user.is_authenticated else None
+      participante = ParticipanteEvento.objects.create(
+          evento=evento, usuario=usuario_logado
+      )
+
       nome_completo_salvo = ''
       trabalha_no_evento_salvo = False
 
@@ -407,7 +412,7 @@ def cadastro_participante_dinamico(request, evento_id):
       participante.save()
 
       # Envio de E-mail de confirmação
-      if participante.email:
+      if getattr(participante, 'email', None):
         participante_url = request.build_absolute_uri(
             reverse('detalhes_participante', args=[participante.id])
         )
@@ -559,6 +564,35 @@ def detalhes_participante(request, participante_id):
       'eventos/detalhes_participante.html',
       {'participante': participante, 'respostas': respostas},
   )
+
+
+def buscar_participante_ajax(request, evento_id):
+    nome_query = request.GET.get('nome', '').strip()
+
+    if not nome_query:
+        return JsonResponse({'participantes': []})
+
+    # Filtra as respostas dinâmicas pelo nome digitado
+    respostas = RespostaCampo.objects.filter(
+        participante__evento_id=evento_id,
+        valor__icontains=nome_query
+    ).select_related('participante')
+
+    participantes_dict = {}
+    for resp in respostas:
+        part = resp.participante
+        if part.id not in participantes_dict:
+            # Verifica com segurança se o participante está pago
+            is_pago = getattr(part, 'pago', None) or getattr(part, 'pagamento_confirmado', False) or (getattr(part, 'status_pagamento', '') == 'Pago')
+
+            participantes_dict[part.id] = {
+                'id': part.id,
+                'nome': resp.valor,
+                'status_pagamento': 'Pago' if is_pago else 'Pendente'
+            }
+
+    return JsonResponse({'participantes': list(participantes_dict.values())})
+
 
 # ==============================================================================
 # INTEGRACÃO MERCADO PAGO E PAGAMENTOS
@@ -783,13 +817,15 @@ def mercado_pago_connect_callback(request):
 
     data = response.json()
     mp_user_id = data.get('user_id')
+    access_token = data.get('access_token')
 
     if mp_user_id:
       user = request.user
       user.mp_user_id = str(mp_user_id)
+      user.mp_access_token = access_token
 
       # 1. Salva explicitamente no MySQL
-      user.save(update_fields=['mp_user_id'])
+      user.save()
 
       # 2. Recarrega o objeto do banco para a view de perfil ler o valor atualizado
       user.refresh_from_db()
@@ -811,31 +847,3 @@ def mercado_pago_connect_callback(request):
     )
 
   return redirect('perfil')
-
-
-def buscar_participante_ajax(request, evento_id):
-    nome_query = request.GET.get('nome', '').strip()
-    
-    if not nome_query:
-        return JsonResponse({'participantes': []})
-
-    # Filtra as respostas dinâmicas pelo nome digitado
-    respostas = RespostaCampo.objects.filter(
-        participante__evento_id=evento_id,
-        valor__icontains=nome_query
-    ).select_related('participante')
-
-    participantes_dict = {}
-    for resp in respostas:
-        part = resp.participante
-        if part.id not in participantes_dict:
-            # Verifica com segurança se o participante está pago
-            is_pago = getattr(part, 'pago', None) or getattr(part, 'pagamento_confirmado', False) or (getattr(part, 'status_pagamento', '') == 'Pago')
-            
-            participantes_dict[part.id] = {
-                'id': part.id,
-                'nome': resp.valor,
-                'status_pagamento': 'Pago' if is_pago else 'Pendente'
-            }
-
-    return JsonResponse({'participantes': list(participantes_dict.values())})

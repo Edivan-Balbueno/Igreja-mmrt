@@ -12,6 +12,10 @@
             {{ form.as_p }}
             <button type="submit" class="btn btn-success">Entrar</button>
     </div>
+    
+    <div class="card-header">
+        <a href="{% url 'password_reset' %}" class="text-decoration-none">Esqueceu sua senha?</a>
+    </div>
 </div>
 
 {% endblock %}
